@@ -1,10 +1,13 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import { html, css, LitElement, unsafeCSS } from '../lit-element/lit-element.js'
-import { Languages } from '../gui-engine-js/languages.js'
-import { Regions } from '../gui-engine-js/regions.js'
+import { Languages } from '../gui-engine/languages.js'
+import { Regions } from '../gui-engine/regions.js'
 
+/**
+ * Guess and suggest in stateless localization about change language to its native lang by IP location!
+ */
 Application.Widgets["suggest-language"] = {
+    ID: "suggest-language",
     Text: {
         "en": [
             "Suggest edit app language",
@@ -16,7 +19,7 @@ Application.Widgets["suggest-language"] = {
         "fa": [
             "پیشنهاد اصلاح زبان نرم افزار",
             "ما فکر می کنیم زبان منطقه شما فارسی می باشد، در صورت تمایل به تغییر زبان نرم افزار به فارسی تائید کنید",
-            "در آینده می توانید زبان مورد نظر خود را در بخش محلی سازی تغییر دهید",
+            "در آینده می توانید زبان مورد نظر خود را در صفحه محلی سازی تغییر دهید",
             "تغییر زبان",
             "رد کردن",
         ],
@@ -34,97 +37,57 @@ Application.Widgets["suggest-language"] = {
             "Confirmer",
             "Rejeter"
         ],
-    }
+    },
+    HTML: (text) => ``,
+    CSS: '',
+    Templates: {}
 }
 
-/**
- * Guess and suggest in stateless localization about change language to its native lang by IP location!
- */
-Application.Widgets["suggest-language"].HTML = class extends LitElement {
-    static get properties() {
-        return {
-            suggestDifferentLanguage: Boolean,
-            guessedLanguage: String,
-            guessedRegion: String,
-        }
-    }
-    constructor() {
-        super()
-        this.suggestDifferentLanguage = false
-        // Set after suggest language!
-        this.localeText = ["", "", "", "", ""]
-    }
-    connectedCallback() {
-        super.connectedCallback();
+
+Application.Widgets["suggest-language"].ConnectedCallback = async function () {
+    try {
         // Guess language and region by user IP location and set related localeText!
         // https://api.ipdata.co/?api-key=test
         // https://ipinfo.io/json
         // http://ip-api.com/json
         // http://api.ipgeolocationapi.com/geolocate
-        fetch('https://ipapi.co/json').then(res => res.json()).then(json => {
-            this.guessedLanguage = json.languages.split(",")[0].split("-")[0]
-            this.guessedRegion = json.country
-            if (this.guessedLanguage !== Application.UserPreferences.ContentPreferences.Language.iso639_1 && Application.ContentPreferences.Languages.includes(this.guessedLanguage)) {
-                this.localeText = Application.Widgets["suggest-language"].Text[this.guessedLanguage]
-                this.suggestDifferentLanguage = true
-            }
-        })
-    }
-    static get styles() {
-        return css`
-            @import '${unsafeCSS(Application.DesignLanguageStyles)}';
-            
-            dialog {
-                position: fixed;
-                max-width: 600px;
-                text-align: center;
-                margin: 1% auto;
-                left: 0;
-                right: 0;
-            }
+        const res = await fetch('https://ipapi.co/json')
+        const jsonRes = await res.json()
 
-            dialog div {
-                padding-bottom: 0px;
-            }
-        `
-    }
-    render() {
-        return html`
-            <div class="disabledBackground" ?hidden=${!this.suggestDifferentLanguage}></div>
-            <dialog type="modal" id="suggest-language" ?open=${this.suggestDifferentLanguage}>
-                <header>${this.localeText[0]}</header>
-                <div>
-                    <p>${this.localeText[1]}</p>
-                    <a href="/localize">
-                        <p>${this.localeText[2]}</p>
-                    </a>
-            
-                    <!-- TODO : May suggested language is not user native so user can't understand dialog usage or even clos it!  -->
-                    <!-- User should have ability to change dialog text language manually||english -->
-                </div>
-                <footer>
-                    <button type="button" @click=${this.changeLanguage}>
-                        <label>${this.localeText[3]}</label>
-                    </button>
-                    <button type="button" @click=${this.closeDialog}>
-                        <label>${this.localeText[4]}</label>
-                    </button>
-                </footer>
-            </dialog>
-        `
-    }
-    closeDialog() {
-        this.suggestDifferentLanguage = false
-        // Save user preference manually due sometimes closing browser not call beforeunload.
-        Application.Save()
-    }
-    changeLanguage() {
-        Application.UserPreferences.ContentPreferences.Language = Languages.find(l => l.iso639_1 === this.guessedLanguage)
-        Application.UserPreferences.ContentPreferences.Region = Regions.find(r => r.iso3166_1_a2 === this.guessedRegion)
+        this.guessedLanguage = jsonRes.languages.split(",")[0].split("-")[0]
+        this.guessedRegion = jsonRes.country
+        if (this.guessedLanguage !== Application.UserPreferences.ContentPreferences.Language.iso639_1 && Application.ContentPreferences.Languages.includes(this.guessedLanguage)) {
+            const LocaleText = this.Text[this.guessedLanguage]
 
-        const url = new URL(window.location.href)
-        url.searchParams.set('hl', this.guessedLanguage + "-" + this.guessedRegion)
-        window.location.replace(url)
+            const suggestLanguageElement = window.document.createElement("div")
+            suggestLanguageElement.id = "suggestLanguage"
+            suggestLanguageElement.innerHTML = this.HTML(LocaleText)
+            const suggestLanguageStyle = window.document.createElement("style")
+            suggestLanguageStyle.innerHTML = this.CSS
+            suggestLanguageElement.appendChild(suggestLanguageStyle)
+
+            window.document.documentElement.appendChild(suggestLanguageElement)
+        }
+    } catch (err) {
+
     }
 }
-customElements.define('widget-suggest-language', Application.Widgets["suggest-language"].HTML)
+
+Application.Widgets["suggest-language"].DisconnectedCallback = function () {
+}
+
+function suggestLanguageWidgetDismissDialog() {
+    document.getElementById("suggestLanguage").remove()
+
+    // Save user preference manually due sometimes closing browser not call beforeunload listeners.
+    Application.Save()
+}
+
+function suggestLanguageWidgetChangeLanguage() {
+    Application.UserPreferences.ContentPreferences.Language = Languages.find(l => l.iso639_1 === Application.Widgets["suggest-language"].guessedLanguage)
+    Application.UserPreferences.ContentPreferences.Region = Regions.find(r => r.iso3166_1_a2 === Application.Widgets["suggest-language"].guessedRegion)
+
+    const url = new URL(window.location.href)
+    url.searchParams.set('hl', Application.Widgets["suggest-language"].guessedLanguage + "-" + Application.Widgets["suggest-language"].guessedRegion)
+    window.location.replace(url)
+}

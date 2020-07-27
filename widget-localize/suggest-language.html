@@ -1,0 +1,23 @@
+<!-- For license and copyright information please see LEGAL file in repository -->
+
+<div class="disabledBackground"></div>
+<dialog type="modal" open>
+    <header>${text[0]}</header>
+    <div>
+        <p>${text[1]}</p>
+        <a href="/localize">
+            <p>${text[2]}</p>
+        </a>
+
+        <!-- TODO : May suggested language is not user native so user can't understand dialog usage or even clos it!  -->
+        <!-- User should have ability to change dialog text language manually||english -->
+    </div>
+    <footer>
+        <button type="button" onclick="suggestLanguageWidgetChangeLanguage()">
+            <label>${text[3]}</label>
+        </button>
+        <button type="button" onclick="suggestLanguageWidgetDismissDialog()">
+            <label>${text[4]}</label>
+        </button>
+    </footer>
+</dialog>

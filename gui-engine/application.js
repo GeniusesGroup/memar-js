@@ -2,6 +2,7 @@
 
 import { Languages } from './languages.js'
 import { Regions } from './regions.js'
+import { Currencies } from './currencies.js'
 
 /**
  * Experimental "Application" objects use to expand default browser window object!
@@ -9,10 +10,8 @@ import { Regions } from './regions.js'
  */
 window.Application = {
     Icon: "", // Image location
-    Info: { // !! Security Warning !! app name and icon must have approved mechanism with domain register process!!
-        "": { Name: "", ShortName: "", Tagline: "", Slogan: "", Description: "", Tags: [] },
-    },
-    LocaleInfo: {}, // Add auto by Application.Localize() method
+    // !! Security Warning !! app name and icon must have approved mechanism with domain register process!!
+    Info: { Name: "", ShortName: "", Tagline: "", Slogan: "", Description: "", Tags: [] },
     ContentPreferences: {  // HTML Preferences
         Languages: ["", "", "",], // Supported languages by app in In iso639_1 format
         Language: {},
@@ -46,25 +45,17 @@ window.Application = {
             ActiveURI: "",
             PreviousURI: "",
             RecordID: null, // As engine standard, second part of URL use as RecordID to display information
-            Condition: {}, // As engine standard, URL parameters use as page Condition to show information
-            State: "", // As standard, URL hash use as page State to show information from that state
-            Robots: "", // "all", "noindex", "nofollow", "none", "noarchive", "nosnippet", "notranslate", "noimageindex", "unavailable_after: [RFC-850 date/time]"
+            Condition: {},  // As engine standard, URL parameters use as page Condition to show information
+            State: "",      // As standard, URL hash use as page State to show information from that state
+            Robots: "",     // "all", "noindex", "nofollow", "none", "noarchive", "nosnippet", "notranslate", "noimageindex", "unavailable_after: [RFC-850 date/time]"
             Icon: "",
             Related: ["", ""],
-            Info: {
-                "": { Name: "", ShortName: "", Tagline: "", Slogan: "", Description: "", Tags: [] },
-            },
-            LocaleInfo: {}, // Add auto by Application.Localize() method
-            Text: {
-                "": ["", "", ""]
-            },
-            LocaleText: {},
-            HTML: "",
-            CSS: "",
+            Info: { Name: "", ShortName: "", Tagline: "", Slogan: "", Description: "", Tags: [] },
+            HTML: () => ``,
+            CSS: '',
             Templates: {},
         },
     },
-    Landings: {},
     Widgets: {},
     UserPreferences: {
         ContentPreferences: {
@@ -127,16 +118,16 @@ window.Application = {
  */
 Application.LoadDesignLanguageStyles = function () {
     if (Application.UserPreferences.PresentationPreferences.DesignLanguage === "material") {
-        Application.DesignLanguageStyles = "/design-languages/design-language--material.css"
+        Application.DesignLanguageStyles = "/design-language--material.css"
         designLanguageElement.href = Application.DesignLanguageStyles
         // Load related icon font family
         // https://fonts.googleapis.com/icon?family=Material+Icons
         const iconsFont = new FontFace('Material Icons', 'url(https://fonts.gstatic.com/s/materialicons/v47/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2)');
         iconsFont.load()
         window.document.fonts.add(iconsFont)
-    } else if (Application.UserPreferences.PresentationPreferences.DesignLanguage === "flat") Application.DesignLanguageStyles = "/design-languages/design-language--flat.css"
-    else if (Application.UserPreferences.PresentationPreferences.DesignLanguage === "fluent") Application.DesignLanguageStyles = "/design-languages/design-language--fluent.css"
-    else if (Application.UserPreferences.PresentationPreferences.DesignLanguage === "ant") Application.DesignLanguageStyles = "/design-languages/design-language--ant.css"
+    } else if (Application.UserPreferences.PresentationPreferences.DesignLanguage === "flat") Application.DesignLanguageStyles = "/design-language--flat.css"
+    else if (Application.UserPreferences.PresentationPreferences.DesignLanguage === "fluent") Application.DesignLanguageStyles = "/design-language--fluent.css"
+    else if (Application.UserPreferences.PresentationPreferences.DesignLanguage === "ant") Application.DesignLanguageStyles = "/design-language--ant.css"
 }
 
 /**
@@ -158,39 +149,40 @@ Application.LoadFontFamilies = function () {
 Application.LoadColorScheme = function () {
     if (Application.UserPreferences.PresentationPreferences.ColorScheme === "no-preference") {
         // get browser or OS preference
-        themeStylesElement.href = "/design-languages/theme-light.css"
-    } else if (Application.UserPreferences.PresentationPreferences.ColorScheme === "dark") themeStylesElement.href = "/design-languages/theme-light.css"
-    else if (Application.UserPreferences.PresentationPreferences.ColorScheme === "light") themeStylesElement.href = "/design-languages/theme-light.css"
+        themeStylesElement.href = "/theme-light.css"
+    }
+    else if (Application.UserPreferences.PresentationPreferences.ColorScheme === "dark") themeStylesElement.href = "/theme-light.css"
+    else if (Application.UserPreferences.PresentationPreferences.ColorScheme === "light") themeStylesElement.href = "/theme-light.css"
 }
 
 let designLanguageElement
 let themeStylesElement
 let pageStylesElement
 
-function init() {
-    // Check user last user preferences state if exist!
-    let up = localStorage.getItem('UserPreferences')
-    if (up) copyObject(JSON.parse(up), Application.UserPreferences)
+// function init() {
+// Check user last user preferences state if exist!
+let up = localStorage.getItem('UserPreferences')
+if (up) copyObject(JSON.parse(up), Application.UserPreferences)
 
-    designLanguageElement = window.document.createElement("link")
-    designLanguageElement.rel = "stylesheet"
-    designLanguageElement.type = "text/css"
-    window.document.head.appendChild(designLanguageElement)
-    Application.LoadDesignLanguageStyles()
+designLanguageElement = window.document.createElement("link")
+designLanguageElement.rel = "stylesheet"
+designLanguageElement.type = "text/css"
+window.document.head.appendChild(designLanguageElement)
+Application.LoadDesignLanguageStyles()
 
-    // Load theme early to respect page styles!
-    themeStylesElement = window.document.createElement('link')
-    themeStylesElement.rel = "stylesheet"
-    themeStylesElement.type = "text/css"
-    window.document.head.appendChild(themeStylesElement)
-    Application.LoadColorScheme()
+// Load theme early to respect page styles!
+themeStylesElement = window.document.createElement('link')
+themeStylesElement.rel = "stylesheet"
+themeStylesElement.type = "text/css"
+window.document.head.appendChild(themeStylesElement)
+Application.LoadColorScheme()
 
-    pageStylesElement = window.document.createElement("style")
-    window.document.head.appendChild(pageStylesElement)
+pageStylesElement = window.document.createElement("style")
+window.document.head.appendChild(pageStylesElement)
 
-    Application.LoadFontFamilies()
-}
-init()
+Application.LoadFontFamilies()
+// }
+// init()
 
 /**
  * https://webmasters.googleblog.com/2013/04/x-default-hreflang-for-international-pages.html
@@ -232,8 +224,10 @@ Application.Initialize = function (app) {
         Application.UserPreferences.PresentationPreferences.PrimaryFontFamily = Application.PresentationPreferences.PrimaryFontFamily
     }
 
-    Application.Localize()
+    if (Application.UserPreferences.HomePage === "") Application.UserPreferences.HomePage = Application.HomePage
 
+    Application.Polyfill.SetLangAndDir()
+    Application.Polyfill.SupportedLanguagesAlternateLink()
     Application.Polyfill.PWA()
     Application.Polyfill.Meta()
 }
@@ -270,30 +264,6 @@ function copyObject(src, copyTo) {
     return conflict
 }
 
-/**
- * Localize method use to set just locale data to app and pages Info
- * Call this method just after Application.Initialize() method.
- */
-Application.Localize = function () {
-    Application.LocaleInfo = Application.Info[Application.UserPreferences.ContentPreferences.Language.iso639_1]
-    for (let key in Application.Pages) {
-        let page = Application.Pages[key]
-        page.LocaleInfo = page.Info[Application.UserPreferences.ContentPreferences.Language.iso639_1]
-        page.LocaleText = page.Text[Application.UserPreferences.ContentPreferences.Language.iso639_1]
-    }
-    for (let key in Application.Widgets) {
-        let widget = Application.Widgets[key]
-        widget.LocaleText = widget.Text[Application.UserPreferences.ContentPreferences.Language.iso639_1]
-    }
-    for (let key in Application.Landings) {
-        let landing = Application.Landings[key]
-        landing.LocaleText = landing.Text[Application.UserPreferences.ContentPreferences.Language.iso639_1]
-    }
-
-    Application.Polyfill.SetLangAndDir()
-    Application.Polyfill.SupportedLanguagesAlternateLink()
-}
-
 /** 
  * Router will route to requestedPageName and optional uri! and also add related page element to body!
  * @param {string} requestedPageName
@@ -316,16 +286,14 @@ Application.Router = function (requestedPageName, uri) {
     // Find requested app!
     Application.ActivePage = Application.Pages[requestedPageName]
     if (!Application.ActivePage && requestedPageName === "landings" && recordID) {
-        Application.ActivePage = Application.Landings[recordID]
+        Application.LoadLanding(recordID)
+        return
     }
     if (!Application.ActivePage) {
         // Requested page not exist
         Application.Router("error-404", "")
         return
     }
-
-    // Will remove when www.sabz.city ready to use
-    if (Application.ActivePage.HTML === "") Application.Polyfill.LoadHtmlCSS(Application.ActivePage, requestedPageName === "landings")
 
     Application.ActivePage.PreviousURI = Application.ActivePage.ActiveURI
     Application.ActivePage.ActiveURI = URI
@@ -345,7 +313,7 @@ Application.Router = function (requestedPageName, uri) {
     // Set page condition same as parameters in URLs! and check requested condition support by page!
     for (let sp of URI.searchParams.keys()) {
         // some application internal params
-        if (sp === "hl" || sp === "utm_source" || sp === "utm_medium" || sp === "utm_campaign") continue
+        if (sp === "hl" || "utm_source" || "utm_medium" || "utm_campaign" || "rd") continue // rd==redirect, hl==hrefLanguage
 
         if (Application.ActivePage.Condition[sp] === undefined) {
             if (Application.ActivePage.ID !== "error-404") {
@@ -363,8 +331,8 @@ Application.Router = function (requestedPageName, uri) {
 
     // Update page title with page full name and update some meta tags!
     // This data also can be update in each page by ConnectedCallback method!
-    window.document.title = Application.ActivePage.LocaleInfo.Name
-    window.document.description.content = Application.ActivePage.LocaleInfo.Description
+    window.document.title = Application.ActivePage.Info.Name
+    window.document.description.content = Application.ActivePage.Info.Description
     window.document.robots.content = Application.ActivePage.Robots
     // Twitter card  https://developer.twitter.com/en/docs/tweets/optimize-with-cards/guides/getting-started.html
     // The Open Graph protocol https://www.ogp.me/
@@ -372,6 +340,23 @@ Application.Router = function (requestedPageName, uri) {
     // Add page HTML & CSS to DOM
     pageStylesElement.innerHTML = Application.ActivePage.CSS
     Application.ActivePage.ConnectedCallback()
+}
+
+Application.LoadLanding = async function (landingName) {
+    const lang = Application.UserPreferences.ContentPreferences.Language.iso639_1 || Application.ContentPreferences.Language.iso639_1
+    try {
+        const res = await fetch('/' + landingName + "-" + lang + ".html")
+        switch (res.status) {
+            case 200:
+                const htmlRes = await res.text()
+                window.document.body.innerHTML = htmlRes
+                window.document.title = landingName
+            case 404:
+                Application.Router("error-404", "")
+        }
+    } catch (err) {
+        // TODO::: network error
+    }
 }
 
 /**
@@ -384,12 +369,11 @@ Application.Save = function () {
 
 /**
  * Add some meta and link tag to header if user not install web app yet for not supported Application!!
- * This method can use just if you call Application.Localize() due we need some locale data!
  */
 Application.Polyfill.PWA = function () {
     // Register service-worker.js
     // service-worker will be removed as soon as we can find other solution to control app by main function!
-    if ('serviceWorker' in window.navigator) window.navigator.serviceWorker.register('/widget-localize/sw.js', { scope: "/" })
+    if ('serviceWorker' in window.navigator) window.navigator.serviceWorker.register('/sw.js', { scope: "/" })
 
     if (window.matchMedia('(display-mode: browser)').matches) {
         // Warn users about console self attack.
@@ -407,7 +391,7 @@ Application.Polyfill.PWA = function () {
         // Add iOS meta tags and icons
         const appleTitle = document.createElement('meta')
         appleTitle.name = "apple-mobile-web-app-title"
-        appleTitle.content = Application.LocaleInfo.Name
+        appleTitle.content = Application.Info.Name
         window.document.head.appendChild(appleTitle)
 
         const appleCapable = document.createElement('meta')
@@ -428,7 +412,7 @@ Application.Polyfill.PWA = function () {
         // Add Chrome meta tags and icons
         const appName = document.createElement('meta')
         appName.name = "application-name"
-        appName.content = Application.LocaleInfo.Name
+        appName.content = Application.Info.Name
         window.document.head.appendChild(appName)
 
         const appCapable = document.createElement('meta')
@@ -445,14 +429,14 @@ Application.Polyfill.PWA = function () {
         const manifest = document.createElement('link')
         manifest.rel = "manifest"
         manifest.href = "data:application/manifest+json," + JSON.stringify({
-            name: Application.LocaleInfo.Name,
-            short_name: Application.LocaleInfo.ShortName,
-            description: Application.LocaleInfo.Description,
+            name: Application.Info.Name,
+            short_name: Application.Info.ShortName,
+            description: Application.Info.Description,
             // theme_color: Application.PresentationPreferences.ThemeColor,
             display: Application.PresentationPreferences.Display,
             orientation: Application.PresentationPreferences.Orientation,
-            start_url: window.location.origin + "/" + Application.HomePage + "?utm_source=PWA&utm_medium=homescreen",
-            icons: [{ "sizes": "512x512", "type": "image/png", src: window.location.origin + Application.Icon }],
+            start_url: window.location.origin + "/" + Application.UserPreferences.HomePage + "?utm_source=PWA&utm_medium=HomeScreen",
+            icons: [{ "sizes": "512x512", "type": "image/png", src: window.location.origin + "/" + Application.Icon }],
         })
         window.document.head.appendChild(manifest)
     }
@@ -539,39 +523,7 @@ Application.Polyfill.SuggestLanguage = function () {
     }
 
     // Suggest language by user IP!
-    import('/widget-localize/widget-suggest-language.js').then(
-        window.document.documentElement.insertBefore(window.document.createElement("widget-suggest-language"), window.document.body)
-    )
-}
-
-/**
- * lazy load pages files! It will just use until dedicated web server(www.sabz.city repo) ready to use!
- */
-Application.Polyfill.LoadHtmlCSS = function (page, landings) {
-    const xhr = new XMLHttpRequest()
-
-    let location = "/pages/page-"
-    if (landings) location = "/landings/landing-"
-
-    for (let tem in page.Templates) {
-        xhr.open("GET", location + page.ID + "-template-" + tem + ".html", false)
-        xhr.send(null)
-        if (xhr.status === 200) {
-            page.Templates[tem] = xhr.responseText
-        }
-    }
-
-    xhr.open("GET", location + page.ID + ".html", false)
-    xhr.send(null)
-    if (xhr.status === 200) {
-        page.HTML = xhr.responseText
-    }
-
-    xhr.open("GET", location + page.ID + ".css", false)
-    xhr.send(null)
-    if (xhr.status === 200) {
-        page.CSS = xhr.responseText
-    }
+    Application.Widgets["suggest-language"].ConnectedCallback()
 }
 
 /**

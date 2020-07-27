@@ -1,7 +1,7 @@
 /* For license and copyright information please see LEGAL file in repository */
 
 // https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
-export const Languages = [
+const Languages = [
     {
         englishName: "Arabic",
         nativeName: "العربية",

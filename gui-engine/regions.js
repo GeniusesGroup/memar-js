@@ -2,7 +2,7 @@
 
 // https://en.wikipedia.org/wiki/ISO_3166-1
 // https://nuget.pkg.github.com/annexare/Countries/blob/master/data/countries.json
-export const Regions = [
+const Regions = [
     {
         englishName: "Afghanistan",
         nativeName: "افغانستان",
@@ -147,6 +147,17 @@ export const Regions = [
         currency: "INR",
         languages: ["hi", "en"]
     }, {
+        englishName: "Iran",
+        nativeName: "ایران",
+        iso3166_1_a2: "IR",
+        iso3166_1_a3: "IRN",
+        iso3166_1_num: "364",
+        phone: "98",
+        continent: "AS",
+        capital: "Tehran",
+        currency: "IRR",
+        languages: ["fa"]
+    }, {
         englishName: "Iraq",
         nativeName: "العراق",
         phone: "964",
@@ -214,15 +225,15 @@ export const Regions = [
         languages: ["en", "ur"]
     }, {
         englishName: "Persia",
-        nativeName: "ایران",
-        iso3166_1_a2: "IR",
-        iso3166_1_a3: "IRN",
-        iso3166_1_num: "364",
-        phone: "98",
-        continent: "AS",
-        capital: "Tehran",
-        currency: "IRR",
-        languages: ["fa"]
+        nativeName: "پارس",
+        iso3166_1_a2: "PR",
+        iso3166_1_a3: "PER",
+        iso3166_1_num: "",
+        phone: "",
+        continent: "",
+        capital: "",
+        currency: "DER",
+        languages: ["per"]
     }, {
         englishName: "Qatar",
         nativeName: "قطر",

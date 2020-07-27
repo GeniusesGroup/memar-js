@@ -1,11 +1,11 @@
 /* For license and copyright information please see LEGAL file in repository */
 
 // https://en.wikipedia.org/wiki/ISO_4217
-export const Currencies = [
+const Currencies = [
     {
-        englishName: "SabzCity Derik",
-        nativeName: "SabzCity Derik",
-        iso4217: "SCD",
+        englishName: "Persia Derik",
+        nativeName: "Persia Derik",
+        iso4217: "PRD",
         iso4217_num: 0,
         symbol: "D",
     }, {

@@ -1,0 +1,32 @@
+<!-- For license and copyright information please see LEGAL file in repository -->
+
+<article id="presentation-preferences">
+    <header>
+        <h1>${LocaleText[1]}</h1>
+    </header>
+
+    <div>
+        <!-- Change design language by user special day like birthday, wedding, ... -->
+        <select id="designLanguage" onchange="setDesignLanguage(this.value)" value="${Application.UserPreferences.PresentationPreferences.DesignLanguage}">
+            <option value="material">Material</option>
+            <option value="flat" disabled>Flat</option>
+            <option value="fluent" disabled>Fluent</option>
+            <option value="ant" disabled>Ant</option>
+            <option value="ibm" disabled>IBM</option>
+            <option value="semantic" disabled>Semantic</option>
+        </select>
+        <label for="designLanguage">${LocaleText[2]}</label>
+
+        <select id="colorScheme" onchange="setColorScheme(this.value)" value="${Application.UserPreferences.PresentationPreferences.ColorScheme}">
+            <option value="no-preference">${LocaleText[5]}</option>
+            <option value="light">${LocaleText[6]}</option>
+            <option value="dark">${LocaleText[7]}</option>
+        </select>
+        <label for="colorScheme">${LocaleText[3]}</label>
+
+        <select id="font" onchange="setPrimaryFont(this.value)" .value=${Application.UserPreferences.PresentationPreferences.PrimaryFontFamily}>
+            <option value='Roboto'>Roboto</option>
+        </select>
+        <label for="font">${LocaleText[4]}</label>
+    </div>
+</article>

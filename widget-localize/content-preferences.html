@@ -1,0 +1,39 @@
+<!-- For license and copyright information please see LEGAL file in repository -->
+
+<article>
+    <header>
+        <h1>${LocaleText[0]}</h1>
+    </header>
+
+    <div>
+        <div>
+            <input type="text" id="language" list=languages value="${Application.UserPreferences.ContentPreferences.Language.nativeName}" onchange="contentWidgetChangeLanguage(this.value)" onfocus="this.value=''" validationMessage="Not supported or bad language selected!">
+            <label for="language">${LocaleText[1]}</label>
+            <datalist id=languages>
+                ${Languages.map(l => { if (Application.ContentPreferences.Languages.includes(l.iso639_1)) return `
+                <option value=${l.nativeName}>${l.englishName}</option>
+                ` })}
+            </datalist>
+        </div>
+
+        <div>
+            <input type="text" id="region" list="countries" value="${Application.UserPreferences.ContentPreferences.Region.nativeName}" onchange="contentWidgetChangeRegion(this.value)" onfocus="this.value=''" validationMessage="Not supported or bad region selected!">
+            <label for="region">${LocaleText[2]}</label>
+            <datalist id="countries">
+                ${Regions.map(r => `
+                <option value=${r.nativeName}>${r.englishName}</option>
+                `)}
+            </datalist>
+        </div>
+
+        <div>
+            <input type="text" id="currency" list="currencies" value="${Application.UserPreferences.ContentPreferences.Currency.nativeName}" onchange="contentWidgetChangeCurrency(this.value)" onfocus="this.value=''" validationMessage="Not supported or bad currency selected!">
+            <label for="region">${LocaleText[3]}</label>
+            <datalist id="currencies">
+                ${Currencies.map(c => `
+                <option value=${c.nativeName}>${c.englishName}</option>
+                `)}
+            </datalist>
+        </div>
+    </div>
+</article>
