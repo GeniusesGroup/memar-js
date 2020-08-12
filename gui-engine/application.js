@@ -351,8 +351,12 @@ Application.LoadLanding = async function (landingName) {
                 const htmlRes = await res.text()
                 window.document.body.innerHTML = htmlRes
                 window.document.title = landingName
+                break
             case 404:
                 Application.Router("error-404", "")
+                break
+            default:
+                Application.Router("error-500", "")
         }
     } catch (err) {
         // TODO::: network error
