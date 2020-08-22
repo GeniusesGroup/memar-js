@@ -110,7 +110,6 @@ window.Application = {
     DesignLanguageStyles: "", // Link element, Add auto by Application.LoadDesignLanguageStyles() method
     PrimaryFont: null, // FontFace(), Add auto by Application.LoadFontFamilies() method
     SecondaryFont: null, // FontFace(), Add auto by Application.LoadFontFamilies() method
-    Polyfill: {}
 }
 
 /**
@@ -204,7 +203,7 @@ Application.Initialize = function (app) {
 
     // Check and set Application.UserPreferences data like language and region in stateless manner if needed!
     if (Application.UserPreferences.ContentPreferences.Language.englishName === "") {
-        Application.Polyfill.SuggestLanguage()
+        Polyfill.SuggestLanguage()
         // If above solution not work, use default application language
         if (Application.UserPreferences.ContentPreferences.Language.englishName === "") {
             Application.UserPreferences.ContentPreferences.Language = Application.ContentPreferences.Language
@@ -226,10 +225,10 @@ Application.Initialize = function (app) {
 
     if (Application.UserPreferences.HomePage === "") Application.UserPreferences.HomePage = Application.HomePage
 
-    Application.Polyfill.SetLangAndDir()
-    Application.Polyfill.SupportedLanguagesAlternateLink()
-    Application.Polyfill.PWA()
-    Application.Polyfill.Meta()
+    Polyfill.SetLangAndDir()
+    Polyfill.SupportedLanguagesAlternateLink()
+    Polyfill.PWA()
+    Polyfill.Meta()
 }
 
 /**
@@ -298,34 +297,33 @@ Application.Router = function (requestedPageName, uri) {
     Application.ActivePage.PreviousURI = Application.ActivePage.ActiveURI
     Application.ActivePage.ActiveURI = URI
 
-    // Check requested page support get RecordID!
-    if (Application.ActivePage.RecordID === null && recordID !== undefined) {
-        // Requested page not exist
-        Application.Router("error-404", "")
-        return
-    }
-    // Set page RecordID!
-    Application.ActivePage.RecordID = recordID
+    if (Application.ActivePage.ID !== ("error-404" || "error-403" || "error-500")) {
+        // Check requested page support get RecordID!
+        if (Application.ActivePage.RecordID === null && recordID !== undefined) {
+            // Requested page not exist
+            Application.Router("error-404", "")
+            return
+        }
 
-    // Set page state same as hash in URLs!
-    Application.ActivePage.State = URI.hash
+        // Set page RecordID!
+        Application.ActivePage.RecordID = recordID
+        // Set page state same as hash in URLs!
+        Application.ActivePage.State = URI.hash
 
-    // Set page condition same as parameters in URLs! and check requested condition support by page!
-    for (let sp of URI.searchParams.keys()) {
-        // some application internal params
-        if (sp === "hl" || "utm_source" || "utm_medium" || "utm_campaign" || "rd") continue // rd==redirect, hl==hrefLanguage
+        // Set page condition same as parameters in URLs! and check requested condition support by page!
+        for (let sp of URI.searchParams.keys()) {
+            // some application internal params
+            if (sp === "hl" || sp === "utm_source" || sp === "utm_medium" || sp === "utm_campaign" || sp === "rd") continue // rd==redirect, hl==hrefLanguage
 
-        if (Application.ActivePage.Condition[sp] === undefined) {
-            if (Application.ActivePage.ID !== "error-404") {
+            if (Application.ActivePage.Condition[sp] === undefined) {
                 // Requested page not exist
                 Application.Router("error-404", "")
                 return
+            } else if (Array.isArray(Application.ActivePage.Condition[sp])) {
+                Application.ActivePage.Condition[sp] = URI.searchParams.getAll(sp)
+            } else {
+                Application.ActivePage.Condition[sp] = URI.searchParams.get(sp)
             }
-            break
-        } else if (Array.isArray(Application.ActivePage.Condition[sp])) {
-            Application.ActivePage.Condition[sp] = URI.searchParams.getAll(sp)
-        } else {
-            Application.ActivePage.Condition[sp] = URI.searchParams.get(sp)
         }
     }
 
@@ -371,10 +369,16 @@ Application.Save = function () {
 }
 
 
+
+/**
+ * Experimental "Polyfill" objects use to expand default browser window object!
+ */
+window.Polyfill= {}
+
 /**
  * Add some meta and link tag to header if user not install web app yet for not supported Application!!
  */
-Application.Polyfill.PWA = function () {
+Polyfill.PWA = function () {
     // Register service-worker.js
     // service-worker will be removed as soon as we can find other solution to control app by main function!
     if ('serviceWorker' in window.navigator) window.navigator.serviceWorker.register('/sw.js', { scope: "/" })
@@ -430,9 +434,7 @@ Application.Polyfill.PWA = function () {
         window.document.head.appendChild(appTheme)
 
         // Add WebManifest
-        const manifest = document.createElement('link')
-        manifest.rel = "manifest"
-        manifest.href = "data:application/manifest+json," + JSON.stringify({
+        const manifest = {
             name: Application.Info.Name,
             short_name: Application.Info.ShortName,
             description: Application.Info.Description,
@@ -441,12 +443,23 @@ Application.Polyfill.PWA = function () {
             orientation: Application.PresentationPreferences.Orientation,
             start_url: window.location.origin + "/" + Application.UserPreferences.HomePage + "?utm_source=PWA&utm_medium=HomeScreen",
             icons: [{ "sizes": "512x512", "type": "image/png", src: window.location.origin + "/" + Application.Icon }],
-        })
-        window.document.head.appendChild(manifest)
+            shortcuts: [],
+        }
+        for (page of Application.MostUsedPages) {
+            manifest.shortcuts.push({
+                "name": Application.Pages[page].Info.Name,
+                "url": window.location.origin + "/" + Application.Pages[page].ID,
+                "description": Application.Pages[page].Info.Description,
+            })
+        }
+        const manifestElement = document.createElement('link')
+        manifestElement.rel = "manifest"
+        manifestElement.href = "data:application/manifest+json," + JSON.stringify(manifest)
+        window.document.head.appendChild(manifestElement)
     }
 }
 
-Application.Polyfill.Meta = function () {
+Polyfill.Meta = function () {
     // If description meta tag is important why it doesn't have document object like title!!?
     // We add it here to update it content later dynamically on every page.
     window.document.description = document.createElement('meta')
@@ -466,7 +479,7 @@ Application.Polyfill.Meta = function () {
  * Set language and region from Application.UserPreferences to html tag of DOM!
  * Call it each time language or region changed
  */
-Application.Polyfill.SetLangAndDir = function () {
+Polyfill.SetLangAndDir = function () {
     // change <html lang="en" dir="ltr"> in language change
     window.document.documentElement.lang = Application.UserPreferences.ContentPreferences.Language.iso639_1 + "-" + Application.UserPreferences.ContentPreferences.Region.iso3166_1_a2
     window.document.dir = Application.UserPreferences.ContentPreferences.Language.dir
@@ -475,7 +488,7 @@ Application.Polyfill.SetLangAndDir = function () {
 /**
  * Add supported languages alternate link to header and update href on every url changed!
  */
-Application.Polyfill.SupportedLanguagesAlternateLink = function () {
+Polyfill.SupportedLanguagesAlternateLink = function () {
     if (Application.ContentPreferences.Languages.length > 1) {
         // Add app supported languages links to header without href attributes!
         defaultElement = window.document.createElement('link')
@@ -507,21 +520,29 @@ function hrefAlternateListener(event) {
     defaultElement.href = url
 }
 
-Application.Polyfill.SuggestLanguage = function () {
+Polyfill.GetLangRegFromURL = function () {
+    const hl = new URLSearchParams(window.location.search).get('hl')
+    const hlParts = hl.split("-")
+    return {
+        l: hlParts[0] || "",
+        r: hlParts[1] || ""
+    }
+}
+
+Polyfill.SuggestLanguage = function () {
     // Check if language be in URL (hl parameter)
-    let hl = new URL(window.location.href).searchParams.get('hl')
-    if (hl && Application.ContentPreferences.Languages.includes(hl.split("-")[0])) {
-        hl = hl.split("-")
-        Application.UserPreferences.ContentPreferences.Language = Languages.find(l => l.iso639_1 === hl[0])
-        if (hl[1]) Application.UserPreferences.ContentPreferences.Region = Regions.find(r => r.iso3166_1_a2 === hl[1])
+    const urlLangReg = Polyfill.GetLangRegFromURL()
+    if (urlLangReg.l !== "" && Application.ContentPreferences.Languages.includes(urlLangReg.l)) {
+        Application.UserPreferences.ContentPreferences.Language = Languages.find(l => l.iso639_1 === urlLangReg.l)
+        if (urlLangReg.r) Application.UserPreferences.ContentPreferences.Region = Regions.find(r => r.iso3166_1_a2 === urlLangReg.r)
     }
     // Check browser languages list!
     else {
         window.navigator.languages.some(l => {
-            hl = l.split("-")
-            if (hl[0] !== "" && Application.ContentPreferences.Languages.includes(hl[0])) {
-                Application.UserPreferences.ContentPreferences.Language = Languages.find(l => l.iso639_1 === hl[0])
-                if (hl[1]) Application.UserPreferences.ContentPreferences.Region.iso3166_1_a2 = Regions.find(r => r.iso3166_1_a2 === hl[1])
+            const hlParts = l.split("-")
+            if (hlParts[0] !== "" && Application.ContentPreferences.Languages.includes(hlParts[0])) {
+                Application.UserPreferences.ContentPreferences.Language = Languages.find(l => l.iso639_1 === hlParts[0])
+                if (hlParts[1]) Application.UserPreferences.ContentPreferences.Region.iso3166_1_a2 = Regions.find(r => r.iso3166_1_a2 === hlParts[1])
             }
         })
     }
@@ -536,8 +557,7 @@ Application.Polyfill.SuggestLanguage = function () {
  * 
  */
 function clickListener(event) {
-    if (event.defaultPrevented || event.button !== 0 ||
-        event.metaKey || event.ctrlKey || event.shiftKey) return
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return
 
     const anchor = event.composedPath().find(n => n.tagName === 'A')
     if (!anchor || anchor.target || !anchor.href ||
