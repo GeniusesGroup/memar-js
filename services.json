@@ -1,0 +1,24 @@
+{
+    "en": [
+        "Pre-Alpha",
+        "Alpha",
+        "Beta",
+        "Perpetual Beta",
+        "Open-Beta",
+        "Closed-Beta",
+        "Release-Candidate",
+        "Stable-Release",
+        "End-Of-Life"
+    ],
+    "fa": [
+        "نسخه قبل از آلفا",
+        "آلفا",
+        "بتا",
+        "بتای همیشکی",
+        "بتای باز",
+        "بتای بسته",
+        "کاندید عرضه",
+        "عرضه پایدار",
+        "اتمام عمر"
+    ]
+}
