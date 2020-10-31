@@ -11,7 +11,7 @@
             <label for="language">${LocaleText[1]}</label>
             <datalist id=languages>
                 ${Languages.map(l => { if (Application.ContentPreferences.Languages.includes(l.iso639_1)) return `
-                <option value=${l.nativeName}>${l.englishName}</option>
+                <option value="${l.nativeName}">${l.englishName}</option>
                 ` })}
             </datalist>
         </div>
@@ -21,7 +21,7 @@
             <label for="region">${LocaleText[2]}</label>
             <datalist id="countries">
                 ${Regions.map(r => `
-                <option value=${r.nativeName}>${r.englishName}</option>
+                <option value="${r.nativeName}">${r.englishName}</option>
                 `)}
             </datalist>
         </div>
@@ -31,7 +31,7 @@
             <label for="region">${LocaleText[3]}</label>
             <datalist id="currencies">
                 ${Currencies.map(c => `
-                <option value=${c.nativeName}>${c.englishName}</option>
+                <option value="${c.nativeName}">${c.englishName}</option>
                 `)}
             </datalist>
         </div>

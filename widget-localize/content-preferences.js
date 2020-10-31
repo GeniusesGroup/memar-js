@@ -1,23 +1,24 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import { Languages } from '../gui-engine/languages.js'
-import { Regions } from '../gui-engine/regions.js'
-import { Currencies } from '../gui-engine/currencies.js'
+import '../widgets.js'
+import { Languages } from '../languages.js'
+import { Regions } from '../regions.js'
+import { Currencies } from '../currencies.js'
 
 // https://tools.ietf.org/html/bcp47
-Application.Widgets["content-preferences"] = {
+widgets["content-preferences"] = {
     ID: "content-preferences",
     HTML: () => ``,
     CSS: '',
     Templates: {}
 }
 
-Application.Widgets["content-preferences"].ConnectedCallback = function () {
+widgets["content-preferences"].ConnectedCallback = function () {
     pageStylesElement.insertAdjacentHTML("beforeend", this.CSS)
     return this.HTML()
 }
 
-Application.Widgets["content-preferences"].DisconnectedCallback = function () {
+widgets["content-preferences"].DisconnectedCallback = function () {
 }
 
 function contentWidgetChangeLanguage(langInput) {

@@ -1,12 +1,13 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import { Languages } from '../gui-engine/languages.js'
-import { Regions } from '../gui-engine/regions.js'
+import '../widgets.js'
+import { Languages } from '../languages.js'
+import { Regions } from '../regions.js'
 
 /**
  * Guess and suggest in stateless localization about change language to its native lang by IP location!
  */
-Application.Widgets["suggest-language"] = {
+widgets["suggest-language"] = {
     ID: "suggest-language",
     Text: {
         "en": [
@@ -44,7 +45,7 @@ Application.Widgets["suggest-language"] = {
 }
 
 
-Application.Widgets["suggest-language"].ConnectedCallback = async function () {
+widgets["suggest-language"].ConnectedCallback = async function () {
     try {
         // Guess language and region by user IP location and set related localeText!
         // https://api.ipdata.co/?api-key=test
@@ -73,21 +74,21 @@ Application.Widgets["suggest-language"].ConnectedCallback = async function () {
     }
 }
 
-Application.Widgets["suggest-language"].DisconnectedCallback = function () {
+widgets["suggest-language"].DisconnectedCallback = function () {
 }
 
 function suggestLanguageWidgetDismissDialog() {
     document.getElementById("suggestLanguage").remove()
 
     // Save user preference manually due sometimes closing browser not call beforeunload listeners.
-    Application.Save()
+    Application.SaveState()
 }
 
 function suggestLanguageWidgetChangeLanguage() {
-    Application.UserPreferences.ContentPreferences.Language = Languages.find(l => l.iso639_1 === Application.Widgets["suggest-language"].guessedLanguage)
-    Application.UserPreferences.ContentPreferences.Region = Regions.find(r => r.iso3166_1_a2 === Application.Widgets["suggest-language"].guessedRegion)
+    Application.UserPreferences.ContentPreferences.Language = Languages.find(l => l.iso639_1 === widgets["suggest-language"].guessedLanguage)
+    Application.UserPreferences.ContentPreferences.Region = Regions.find(r => r.iso3166_1_a2 === widgets["suggest-language"].guessedRegion)
 
     const url = new URL(window.location.href)
-    url.searchParams.set('hl', Application.Widgets["suggest-language"].guessedLanguage + "-" + Application.Widgets["suggest-language"].guessedRegion)
+    url.searchParams.set('hl', widgets["suggest-language"].guessedLanguage + "-" + widgets["suggest-language"].guessedRegion)
     window.location.replace(url)
 }
