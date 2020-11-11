@@ -1,0 +1,70 @@
+/* For license and copyright information please see LEGAL file in repository */
+
+#pop-up-widget {
+    position: fixed;
+    display: flex;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.5rem;
+    overflow: hidden;
+    z-index: 1052;
+    pointer-events: none;
+}
+
+#pop-up-widget * {
+    pointer-events: auto;
+}
+
+dialog[role=alert] {
+    display: inline-flex;
+    flex-direction: row;
+    position: relative;
+    align-self: flex-end;
+    margin: unset;
+    /* width: 5rem; */
+    height: 5rem;
+    align-items: center;
+    cursor: pointer;
+}
+
+dialog[type=Info] {
+    background-color: deepskyblue;
+}
+
+dialog[type=Warning] {
+    background-color: yellow;
+}
+
+dialog[type=Error] {
+    background-color: red;
+}
+
+dialog[type=Success] {
+    background-color: green;
+}
+
+dialog[role=alert] header {
+    display: flex;
+    align-items: center;
+    margin: unset;
+    padding: unset;
+}
+
+dialog[role=alert] h1 {
+    margin: unset;
+    font-size: 1rem;
+}
+
+dialog[role=alert] p {
+    margin: unset;
+    font-size: .8rem;
+}
+
+dialog[role=alert] div {
+    padding: 5px;
+    height: 100%;
+    background-color: var(--color--surface);
+    opacity: 0.9;
+}
