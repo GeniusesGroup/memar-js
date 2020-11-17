@@ -1,8 +1,43 @@
 /* For license and copyright information please see LEGAL file in repository */
 
+const region = {
+    poolByISO3166_1_num: {},
+    poolByISO3166_1_a2: {},
+    poolByISO3166_1_a3: {},
+    poolByNativeName: {},
+}
+
+region.GetByNativeName = function (nativeName) {
+    return this.poolByNativeName[nativeName]
+}
+
+region.GetSupportedByNativeName = function (nativeName) {
+    const reg = this.poolByNativeName[nativeName]
+    if (!reg) return null
+    if (!Application.ContentPreferences.Regions.includes(reg.iso3166_1_a3)) return null
+    return reg
+}
+
+region.GetAllAsOptions = function () {
+    let options = ""
+    for (let r of this.Regions) {
+        options += `<option value="${r.nativeName}">${r.englishName}</option>`
+    }
+    return options
+}
+
+region.GetAppSupportedAsOptions = function () {
+    let options = ""
+    for (let r of this.Regions) {
+        if (!Application.ContentPreferences.Regions.includes(r.iso3166_1_a3)) continue
+        options += `<option value="${r.nativeName}">${r.englishName}</option>`
+    }
+    return options
+}
+
 // https://en.wikipedia.org/wiki/ISO_3166-1
 // https://nuget.pkg.github.com/annexare/Countries/blob/master/data/countries.json
-const Regions = [
+region.Regions = [
     {
         englishName: "Afghanistan",
         nativeName: "افغانستان",
@@ -303,8 +338,8 @@ const Regions = [
     }, {
         englishName: "United States",
         nativeName: "United States",
-        iso3166_1_a2: "IR",
-        iso3166_1_a3: "IRN",
+        iso3166_1_a2: "US",
+        iso3166_1_a3: "USA",
         iso3166_1_num: "364",
         phone: "1",
         continent: "NA",
@@ -313,3 +348,12 @@ const Regions = [
         languages: ["en"]
     },
 ]
+
+// function init() {
+for (let r of region.Regions) {
+    region.poolByISO3166_1_num[r.iso3166_1_num] = r
+    region.poolByISO3166_1_a2[r.iso3166_1_a2] = r
+    region.poolByISO3166_1_a3[r.iso3166_1_a3] = r
+    region.poolByNativeName[r.nativeName] = r
+}
+// }
