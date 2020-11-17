@@ -4,6 +4,9 @@ import './polyfill.js'
 import './users.js'
 import './pages.js'
 import './thing.js'
+import './language.js'
+import './region.js'
+import './price/currency.js'
 
 /**
  * Experimental "Application" objects use to expand default browser window object!
@@ -14,11 +17,11 @@ const Application = {
     // !! Security Warning !! app name and icon must have approved mechanism with domain register process!!
     Info: { Name: "", ShortName: "", Tagline: "", Slogan: "", Description: "", Tags: [] },
     ContentPreferences: {  // HTML Preferences
-        Languages: [], // Supported languages by app in In iso639_1 format
+        Languages: [], // Supported languages by app in In iso639_1 format. First one is default.
         Language: {},
-        Charset: "", // "utf-8" || 
-        Currencies: [], // Supported currencies by app In ISO_4217
+        Currencies: [], // Supported currencies by app In ISO_4217. First one is default.
         Currency: {},
+        Regions: [],  // Supported currencies by app In iso3166_1_a3. First one is default.
         Region: {},
     },
     PresentationPreferences: {  // CSS Preferences
@@ -44,15 +47,13 @@ const Application = {
 }
 
 /**
- * Initialize method initialize Application to set||update app data so never change reference of Application to set||update data.
- * Function app parameter structure is Application object with as much as you want custom data!
- */
-Application.Initialize = function () { }
-
-/**
  * Start the application
  */
 Application.Start = function () {
+    Application.ContentPreferences.Language = language.poolByISO639_1[Application.ContentPreferences.Languages[0]]
+    Application.ContentPreferences.Region = region.poolByISO3166_1_a3[Application.ContentPreferences.Regions[0]]
+    Application.ContentPreferences.Currency = currency.poolByISO4217[Application.ContentPreferences.Currencies[0]]
+
     thing.init()
     const firstTime = users.LoadState()
 

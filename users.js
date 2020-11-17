@@ -21,23 +21,17 @@ users.LoadState = function () {
     let usersID = localStorage.getItem('UsersID')
     if (usersID && usersID.length > 10) {
         usersID = JSON.parse(usersID)
-        for (id of usersID) this.poolByID[id] = JSON.parse(localStorage.getItem(id))
+        for (id of usersID) {
+            let user = JSON.parse(localStorage.getItem(id))
+            user.ContentPreferences.Language = language.poolByISO639_1[user.ContentPreferences.Languages[0] || Application.ContentPreferences.Languages[0]]
+            user.ContentPreferences.Region = region.poolByISO3166_1_a3[user.ContentPreferences.Regions[0] || Application.ContentPreferences.Regions[0]]
+            user.ContentPreferences.Currency = currency.poolByISO4217[user.ContentPreferences.Currencies[0] || Application.ContentPreferences.Currencies[0]]
+            this.poolByID[id] = user
+        }
     }
+    firstTime = this.loadGuestUser()
 
-    const guestUserPre = localStorage.getItem(GuestUserID)
-    if (guestUserPre && guestUserPre.length > 10) { // && guestUserPre !== "undefined"
-        this.guestUser = JSON.parse(guestUserPre)
-    }
-    if (this.guestUser.UserID !== GuestUserID) {
-        this.guestUser = guestUserPreferences
-        this.guestUser.ContentPreferences = Application.ContentPreferences
-        this.guestUser.PresentationPreferences = Application.PresentationPreferences
-        this.guestUser.HomePage = Application.HomePage
-        firstTime = true
-        localStorage.setItem(GuestUserID, JSON.stringify(users.guestUser))
-    }
-
-    let activeUserID = cookie.GetByName(HTTPCookieNamePersonID)
+    let activeUserID = cookie.GetByName(HTTPCookieNameBaseUserID)
     this.active = this.poolByID[activeUserID]
     if (!this.active) {
         this.active = this.guestUser
@@ -46,25 +40,52 @@ users.LoadState = function () {
     return firstTime
 }
 
+users.loadGuestUser = function () {
+    const guestUserPre = localStorage.getItem(GuestUserID)
+    if (guestUserPre && guestUserPre.length > 10) { // && guestUserPre !== "undefined"
+        this.guestUser = JSON.parse(guestUserPre)
+        this.guestUser.ContentPreferences.Language = language.poolByISO639_1[this.guestUser.ContentPreferences.Languages[0] || Application.ContentPreferences.Languages[0]]
+        this.guestUser.ContentPreferences.Region = region.poolByISO3166_1_a3[this.guestUser.ContentPreferences.Regions[0] || Application.ContentPreferences.Regions[0]]
+        this.guestUser.ContentPreferences.Currency = currency.poolByISO4217[this.guestUser.ContentPreferences.Currencies[0] || Application.ContentPreferences.Currencies[0]]
+    }
+    if (this.guestUser.UserID !== GuestUserID) {
+        this.guestUser = guestUserPreferences
+        this.guestUser.ContentPreferences = Application.ContentPreferences
+        this.guestUser.PresentationPreferences = Application.PresentationPreferences
+        this.guestUser.HomePage = Application.HomePage
+        return true
+    }
+}
+
 /**
- * SaveState write active users state to browser localStorage.
+ * SaveState write active users state to browser localStorage before exit app.
  */
-users.SaveState = function () {
+window.onbeforeunload = function (event) {
     // If user clear cache, ignore saving
-    if (!cookie.GetByName(HTTPCookieNamePersonID)) return
+    if (!cookie.GetByName(HTTPCookieNameBaseUserID)) return
 
     let usersID = []
     for (id in users.poolByID) {
         usersID.push(id)
-        localStorage.setItem(id, JSON.stringify(users.poolByID[id]))
+
+        let user = users.poolByID[id]
+        delete user.ContentPreferences.Language
+        delete user.ContentPreferences.Region
+        delete user.ContentPreferences.Currency
+
+        localStorage.setItem(id, JSON.stringify(user))
     }
     localStorage.setItem('UsersID', JSON.stringify(usersID))
 
-    localStorage.setItem(GuestUserID, JSON.stringify(users.guestUser))
+    users.saveGuestUser()
 }
 
-// Save UserPreferences on user exit app!
-window.addEventListener('beforeunload', users.SaveState, false)
+users.saveGuestUser = function () {
+    delete users.guestUser.ContentPreferences.Language
+    delete users.guestUser.ContentPreferences.Region
+    delete users.guestUser.ContentPreferences.Currency
+    localStorage.setItem(GuestUserID, JSON.stringify(users.guestUser))
+}
 
 /**
  * ChangeActiveUser change desire user state to active UserPreferences.
@@ -74,20 +95,19 @@ window.addEventListener('beforeunload', users.SaveState, false)
 users.ChangeActiveUser = function (userID) {
     let firstTime = false
 
-    // First save active user preferences
-    localStorage.setItem(this.active.UserID, JSON.stringify(this.active))
-
-    if (!this.poolByID[userID]) {
-        this.poolByID[userID] = {}
-        this.poolByID[userID].UserID = userID
-        this.poolByID[userID].UserName = "User"
-        this.poolByID[userID].UserPicture = "/not-login-user.svg"
-        this.poolByID[userID].ContentPreferences = this.active.ContentPreferences || Application.ContentPreferences
-        this.poolByID[userID].PresentationPreferences = this.active.PresentationPreferences || Application.PresentationPreferences
-        this.poolByID[userID].HomePage = this.active.HomePage || Application.HomePage
+    let newUser = this.poolByID[userID]
+    if (!newUser) {
+        newUser = {}
+        newUser.UserID = userID
+        newUser.UserName = "User"
+        newUser.UserPicture = "/not-login-user.svg"
+        newUser.ContentPreferences = this.active.ContentPreferences || Application.ContentPreferences
+        newUser.PresentationPreferences = this.active.PresentationPreferences || Application.PresentationPreferences
+        newUser.HomePage = this.active.HomePage || Application.HomePage
+        this.poolByID[userID] = newUser
         firstTime = true
     }
-    this.active = this.poolByID[userID]
+    this.active = newUser
 
     return firstTime
 }
@@ -99,34 +119,9 @@ const guestUserPreferences = {
     UserPicture: "/not-login-user.svg",
 
     ContentPreferences: {
-        Language: {
-            englishName: "",
-            nativeName: "",
-            iso639_1: "",
-            iso639_2T: "",
-            iso639_2B: "",
-            iso639_3: "",
-            dir: "",
-        },
-        Region: {
-            englishName: "",
-            nativeName: "",
-            iso3166_1_a2: "",
-            iso3166_1_a3: "",
-            iso3166_1_num: "",
-            phone: "",
-            continent: "",
-            capital: "",
-            currency: "",
-            languages: [""]
-        },
-        Currency: {
-            englishName: "",
-            nativeName: "",
-            iso4217: "",
-            iso4217_num: 0,
-            symbol: "",
-        },
+        Languages: [""],
+        Regions: [""],
+        Currencies: [""],
     },
     PresentationPreferences: {
         DesignLanguage: "material",
