@@ -14,3 +14,15 @@ time.unix.String = function (unix_timestamp) {
 
     return dateString + " " + timeString
 }
+
+time.Sleep = async function (milliseconds) {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
+time.SleepBlocking = function (milliseconds) {
+    const date = Date.now()
+    let currentDate = null
+    do {
+        currentDate = Date.now()
+    } while (currentDate - date < milliseconds)
+}
