@@ -7,33 +7,21 @@
 
     <div>
         <div>
-            <input type="text" id="language" list=languages value="${Application.UserPreferences.ContentPreferences.Language.nativeName}" onchange="contentWidgetChangeLanguage(this.value)" onfocus="this.value=''" validationMessage="Not supported or bad language selected!">
+            <input type="text" id="language" list=languages value="${users.active.ContentPreferences.Language.nativeName}" onchange="contentPreferencesWidget.ChangeLanguage(this)" onfocus="this.value=''" validationMessage="${LocaleText[4]}">
             <label for="language">${LocaleText[1]}</label>
-            <datalist id=languages>
-                ${Languages.map(l => { if (Application.ContentPreferences.Languages.includes(l.iso639_1)) return `
-                <option value="${l.nativeName}">${l.englishName}</option>
-                ` })}
-            </datalist>
+            <datalist id=languages>${language.GetAppSupportedAsOptions()}</datalist>
         </div>
 
         <div>
-            <input type="text" id="region" list="countries" value="${Application.UserPreferences.ContentPreferences.Region.nativeName}" onchange="contentWidgetChangeRegion(this.value)" onfocus="this.value=''" validationMessage="Not supported or bad region selected!">
+            <input type="text" id="region" list="countries" value="${users.active.ContentPreferences.Region.nativeName}" onchange="contentPreferencesWidget.ChangeRegion(this)" onfocus="this.value=''" validationMessage="${LocaleText[5]}">
             <label for="region">${LocaleText[2]}</label>
-            <datalist id="countries">
-                ${Regions.map(r => `
-                <option value="${r.nativeName}">${r.englishName}</option>
-                `)}
-            </datalist>
+            <datalist id="countries">${region.GetAppSupportedAsOptions()}</datalist>
         </div>
 
         <div>
-            <input type="text" id="currency" list="currencies" value="${Application.UserPreferences.ContentPreferences.Currency.nativeName}" onchange="contentWidgetChangeCurrency(this.value)" onfocus="this.value=''" validationMessage="Not supported or bad currency selected!">
-            <label for="region">${LocaleText[3]}</label>
-            <datalist id="currencies">
-                ${Currencies.map(c => `
-                <option value="${c.nativeName}">${c.englishName}</option>
-                `)}
-            </datalist>
+            <input type="text" id="currency" list="currencies" value="${users.active.ContentPreferences.Currency.nativeName}" onchange="contentPreferencesWidget.ChangeCurrency(this)" onfocus="this.value=''" validationMessage="${LocaleText[6]}">
+            <label for="currency">${LocaleText[3]}</label>
+            <datalist id="currencies">${currency.GetAppSupportedAsOptions()}</datalist>
         </div>
     </div>
 </article>

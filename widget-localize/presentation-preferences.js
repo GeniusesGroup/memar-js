@@ -1,31 +1,35 @@
 /* For license and copyright information please see LEGAL file in repository */
 
 import '../widgets.js'
+import '../users.js'
 
-widgets["presentation-preferences"] = {
+const presentationPreferencesWidget = {
     ID: "presentation-preferences",
     HTML: () => ``,
     CSS: '',
     Templates: {}
 }
+widgets.poolByID[presentationPreferencesWidget.ID] = presentationPreferencesWidget
 
-widgets["presentation-preferences"].ConnectedCallback = function () {
+presentationPreferencesWidget.ConnectedCallback = function () {
     pageStylesElement.insertAdjacentHTML("beforeend", this.CSS)
     return this.HTML()
 }
 
-widgets["presentation-preferences"].DisconnectedCallback = function () {
+presentationPreferencesWidget.DisconnectedCallback = function () {
 }
 
-function setDesignLanguage(dl) {
-    Application.UserPreferences.PresentationPreferences.DesignLanguage = dl
+presentationPreferencesWidget.SetDesignLanguage = function (dl) {
+    users.active.PresentationPreferences.DesignLanguage = dl
     Application.LoadDesignLanguageStyles()
 }
-function setColorScheme(cs) {
-    Application.UserPreferences.PresentationPreferences.ColorScheme = cs
+
+presentationPreferencesWidget.SetColorScheme = function (cs) {
+    users.active.PresentationPreferences.ColorScheme = cs
     Application.LoadColorScheme()
 }
-function setPrimaryFont(pf) {
-    Application.UserPreferences.PresentationPreferences.PrimaryFontFamily = pf
+
+presentationPreferencesWidget.SetPrimaryFont = function (pf) {
+    users.active.PresentationPreferences.PrimaryFontFamily = pf
     Application.LoadFontFamilies()
 }

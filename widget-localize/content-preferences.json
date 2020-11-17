@@ -3,12 +3,18 @@
         "Content Preferences",
         "Language",
         "Region",
-        "Currency"
+        "Currency",
+        "Not supported or bad language selected!",
+        "Not supported or bad region selected!",
+        "Not supported or bad currency selected!"
     ],
     "fa": [
         "ترجیحات محتوا",
         "زبان",
         "منطقه یا کشور",
-        "واحد پول - ارز"
+        "واحد پول - ارز",
+        "زبان انتخاب شده صحیح نمی باشد یا توسط نرم افزار پشتیبانی نمی شود",
+        "منطقه یا کشور انتخاب شده صحیح نمی باشد یا توسط نرم افزار پشتیبانی نمی شود",
+        "ارز انتخاب شده صحیح نمی باشد یا توسط نرم افزار پشتیبانی نمی شود"
     ]
 }

@@ -1,58 +1,69 @@
 /* For license and copyright information please see LEGAL file in repository */
 
 import '../widgets.js'
-import { Languages } from '../languages.js'
-import { Regions } from '../regions.js'
-import { Currencies } from '../currencies.js'
+import '../language.js'
+import '../region.js'
+import '../price/currency.js'
+import '../users.js'
 
-// https://tools.ietf.org/html/bcp47
-widgets["content-preferences"] = {
+/**
+ * 
+ * https://tools.ietf.org/html/bcp47
+ */
+const contentPreferencesWidget = {
     ID: "content-preferences",
     HTML: () => ``,
     CSS: '',
     Templates: {}
 }
+widgets.poolByID[contentPreferencesWidget.ID] = contentPreferencesWidget
 
-widgets["content-preferences"].ConnectedCallback = function () {
+contentPreferencesWidget.ConnectedCallback = function () {
     pageStylesElement.insertAdjacentHTML("beforeend", this.CSS)
     return this.HTML()
 }
 
-widgets["content-preferences"].DisconnectedCallback = function () {
+contentPreferencesWidget.DisconnectedCallback = function () {
 }
 
-function contentWidgetChangeLanguage(langInput) {
-    // const langInput = this.shadowRoot.getElementById("language")
-    const lang = Languages.find(l => l.nativeName === langInput)
-    if (lang && Application.ContentPreferences.Languages.includes(lang.iso639_1)) {
-        Application.UserPreferences.ContentPreferences.Language = lang
-        // langInput.setCustomValidity("")
+contentPreferencesWidget.ChangeLanguage = function(element) {
+    const lang = language.GetSupportedByNativeName(element.value)
+    if (lang) {
+        users.active.ContentPreferences.Languages = [lang.iso639_1]
+        users.active.ContentPreferences.Language = lang
+        element.setCustomValidity("")
+        element.reportValidity()
     } else {
-        // alert user about not supported or bad language selected
-        // langInput.setCustomValidity(langInput.getAttribute("validationMessage"))
+        // alert user about not supported or bad region selected
+        element.setCustomValidity(element.getAttribute("validationMessage"))
+        element.reportValidity()
     }
 }
 
-function contentWidgetChangeRegion(regionInput) {
-    // const regionInput = this.shadowRoot.getElementById("region")
-    const region = Regions.find(r => r.nativeName === regionInput.value)
-    if (region) {
-        Application.UserPreferences.ContentPreferences.Region = region
-        // regionInput.setCustomValidity("")
+contentPreferencesWidget.ChangeRegion = function(element) {
+    const reg = region.GetSupportedByNativeName(element.value)
+    if (reg) {
+        users.active.ContentPreferences.Regions = [reg.iso3166_1_a3]
+        users.active.ContentPreferences.Region = reg
+        element.setCustomValidity("")
+        element.reportValidity()
     } else {
         // alert user about not supported or bad region selected
-        // regionInput.setCustomValidity(regionInput.getAttribute("validationMessage"))
+        element.setCustomValidity(element.getAttribute("validationMessage"))
+        element.reportValidity()
     }
 }
 
-function contentWidgetChangeCurrency(currencyInput) {
-    // const currencyInput = this.shadowRoot.getElementById("currency")
-    const currency = Currencies.find(c => c.nativeName === currencyInput.value)
-    if (currency) {
-        Application.UserPreferences.ContentPreferences.Currency = currency
-        // currencyInput.setCustomValidity("")
+contentPreferencesWidget.ChangeCurrency = function(element) {
+    const cur = currency.GetSupportedByNativeName(element.value)
+    if (cur) {
+        users.active.ContentPreferences.Regions = [cur.iso4217]
+        users.active.ContentPreferences.Currency = cur
+        element.setCustomValidity("")
+        element.reportValidity()
     } else {
-        // alert user about not supported or bad region selected
-        // currencyInput.setCustomValidity(currencyInput.getAttribute("validationMessage"))
+        // alert user about not supported or bad currency selected
+        element.setCustomValidity(element.getAttribute("validationMessage"))
+        element.reportValidity()
     }
 }
