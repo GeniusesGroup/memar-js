@@ -1,8 +1,10 @@
 {
     "en": [
-        "Find barcode by device camera"
+        "Find barcode by device camera",
+        "View camera"
     ],
     "fa": [
-        "پیدا کردن بارکد با دوربین دستگاه"
+        "پیدا کردن بارکد با دوربین دستگاه",
+        "نمایش دوربین"
     ]
 }
