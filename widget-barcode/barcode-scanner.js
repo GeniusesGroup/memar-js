@@ -1,6 +1,7 @@
 /* For license and copyright information please see LEGAL file in repository */
 
 import '../widgets.js'
+import '../errors.js'
 import './zbar.js'
 
 const barcodeScannerWidget = {
@@ -11,33 +12,42 @@ const barcodeScannerWidget = {
     Templates: {},
     Options: {
         ViewerElementID: "barcodeScannerWidgetViewer",
-        ScanPeriod: 500, // 0.5 sec
-        DuplicateDelay: 1000, // 1 sec
+        ScanPeriod: 100, // 0.1 sec
+        ScanDelay: 2000, // 2 sec, set to delay from last successful scan
         ResolutionWidth: 1280, // HD is enough on many barcode
         ResolutionHeight: 720, // HD is enough on many barcode
-    },
+        /**
+         * just call when new barcode detected || pass more than options.ScanDelay
+         * @param {ZBarSymbol[]} ZBarSymbols 
+         */
+        CallBackResults: function test(ZBarSymbols) {
+            for (let res of ZBarSymbols) {
+                barcodeScannerWidget.Beep(200, 500, 5)
+            }
+        }
+    }
 }
 widgets.RegisterWidget(barcodeScannerWidget)
 
 /**
  * 
- * @param {object} options
+ * @param {object} options same as barcodeScannerWidget.Options
  */
-barcodeScannerWidget.Init = async function (options) {
-    // TODO::: Set given options if exist
-}
+barcodeScannerWidget.ConnectedCallback = function (options) {
+    if (options.ViewerElementID) this.Options.ViewerElementID = options.ViewerElementID
+    if (options.ScanPeriod) this.Options.ScanPeriod = options.ScanPeriod
+    if (options.ScanDelay) this.Options.ScanDelay = options.ScanDelay
+    if (options.ResolutionWidth) this.Options.ResolutionWidth = options.ResolutionWidth
+    if (options.ResolutionHeight) this.Options.ResolutionHeight = options.ResolutionHeight
+    if (options.CallBackResults) this.Options.CallBackResults = options.CallBackResults
 
-/**
- * 
- * @param {function(ZBarSymbol[])} callBackResults just call when new barcode detected or pass more than Options.DuplicateDelay from last barcode!
- */
-barcodeScannerWidget.ConnectedCallback = function (callBackResults) {
     if (!this.video) {
         this.video = document.createElement('video')
-        this.video.setAttribute('playsinline', '')
+        this.video.playsinline = true
+        this.video.hidden = true
+        this.video.className = "barcodeScannerWidget"
     }
 
-    this.Options.callBackResults = callBackResults
     pageStylesElement.insertAdjacentHTML("beforeend", this.CSS)
     return this.HTML()
 }
@@ -52,12 +62,18 @@ barcodeScannerWidget.toggleViewer = function () {
         // TODO::: toast related error
         return
     }
-    if (barcodeViewerElement.childNodes.length > 0) {
-        this.viewerEnabled = false
-        barcodeViewerElement.innerText = ""
-    } else {
-        this.viewerEnabled = true
+
+    const videoElement = barcodeViewerElement.getElementsByTagName("video")
+    if (videoElement.length === 0) {
         barcodeViewerElement.appendChild(this.video)
+    }
+
+    if (this.video.hidden) {
+        this.viewerEnabled = true
+        this.video.hidden = false
+    } else {
+        this.viewerEnabled = false
+        this.video.hidden = true
     }
 }
 
@@ -100,10 +116,11 @@ barcodeScannerWidget.enableScanner = async function () {
             }
         })
         barcodeScannerWidget.video.srcObject = barcodeScannerWidget.mediaStream
-        barcodeScannerWidget.video.play()
-        await new Promise(r => {
-            barcodeScannerWidget.video.onloadedmetadata = r
-        })
+        await barcodeScannerWidget.video.play()
+
+        // TODO::: change ZBar Image class to pass directly imageBitmap if `new ImageCapture(track).grabFrame()` more efficient!
+        // const track = barcodeScannerWidget.mediaStream.getVideoTracks()[0]
+        // barcodeScannerWidget.imageCapture = new ImageCapture(track)
     } catch (err) {
         // OverconstrainedError : constraint: "facingMode"
         errors.HandleError(err)
@@ -113,8 +130,12 @@ barcodeScannerWidget.enableScanner = async function () {
 
     while (this.scannerEnabled) {
         const res = await barcodeScannerWidget.scan()
-        this.Options.callBackResults(res)
-        await time.Sleep(this.Options.ScanPeriod)
+        if (res.length === 0) {
+            await time.Sleep(this.Options.ScanPeriod)
+        } else {
+            this.Options.CallBackResults(res)
+            await time.Sleep(this.Options.ScanDelay)
+        }
     }
 }
 
@@ -124,7 +145,6 @@ barcodeScannerWidget.disableScanner = async function () {
     for (let track of barcodeScannerWidget.mediaStream.getTracks()) {
         track.stop()
     }
-
 }
 
 barcodeScannerWidget.scan = async function () {
@@ -136,6 +156,37 @@ barcodeScannerWidget.scan = async function () {
     const ctx = canvas.getContext('2d')
     ctx.drawImage(this.video, 0, 0, width, height)
     const imgData = ctx.getImageData(0, 0, width, height)
-    const res = await ZBar.ScanImageData(imgData, this.scanner)
+    const res = await ZBar.ScanRGBABuffer(imgData.data.buffer, width, height, this.scanner)
+
+    // TODO::: change ZBar Image class to pass directly imageBitmap if `new ImageCapture(track).grabFrame()` more efficient!
+    // const imageBitmap = await this.imageCapture.grabFrame()
+    // const res = await ZBar.ScanImage(imageBitmap, this.scanner)
     return res
+}
+
+barcodeScannerWidget.audioCtx = new (window.AudioContext || window.webkitAudioContext || window.audioContext)
+
+/**
+ * 
+ * All arguments are optional
+ * @param {number} duration duration of the tone in milliseconds. Default is 500
+ * @param {number} frequency frequency of the tone in hertz. default is 440
+ * @param {number} volume volume of the tone. Default is 1, off is 0.
+ * @param {string} type type of tone. Possible values are sine, square, sawtooth, triangle, and custom. Default is sine.
+ * @param {function} callback callback to use on end of tone
+ */
+barcodeScannerWidget.Beep = function (duration, frequency, volume, type, callback) {
+    let oscillator = this.audioCtx.createOscillator()
+    let gainNode = this.audioCtx.createGain()
+
+    oscillator.connect(gainNode)
+    gainNode.connect(this.audioCtx.destination)
+
+    if (volume) gainNode.gain.value = volume
+    if (frequency) oscillator.frequency.value = frequency
+    if (type) oscillator.type = type
+    if (callback) oscillator.onended = callback
+
+    oscillator.start(this.audioCtx.currentTime)
+    oscillator.stop(this.audioCtx.currentTime + ((duration || 500) / 1000))
 }

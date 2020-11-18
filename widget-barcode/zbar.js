@@ -1,7 +1,7 @@
 /* For license and copyright information please see LEGAL file in repository */
 
 import '../errors.js'
-import './zbar.wasm'
+import './zbar-v0.wasm'
 
 /**
  * 
@@ -55,7 +55,7 @@ ZBar.GetInstance = async function () {
 
         // Load related WASM file
         try {
-            const output = await WebAssembly.instantiateStreaming(fetch('zbar.wasm'), importObj)
+            const output = await WebAssembly.instantiateStreaming(fetch('zbar-v0.wasm'), importObj)
             ZBar.Instance = output.instance.exports
             emscripten_notify_memory_growth(0)
         } catch (err) {
@@ -330,15 +330,8 @@ ZBar.GetDefaultScanner = async function () {
  * @param {ImageScanner} scanner 
  */
 ZBar.ScanImage = async function (image, scanner) {
-    if (scanner === undefined) {
-        scanner = await ZBar.defaultScannerPromise
-    }
     const res = scanner.scan(image)
-    if (res < 0) {
-        throw Error('Scan Failed')
-    }
-    if (res === 0)
-        return []
+    if (res <= 0) return []
     return image.getSymbols()
 }
 
@@ -355,11 +348,6 @@ ZBar.ScanRGBABuffer = async (buffer, width, height, scanner) => {
     image.destroy()
     return res
 }
-
-ZBar.ScanImageData = async function (image, scanner) {
-    return await ZBar.ScanRGBABuffer(image.data.buffer, image.width, image.height, scanner)
-}
-
 
 /**
  * ZBar Symbol Types
