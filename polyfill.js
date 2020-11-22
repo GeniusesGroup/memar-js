@@ -1,14 +1,51 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import './languages.js'
-import './regions.js'
-import './currencies.js'
+import './language.js'
+import './pages.js'
+import './time.js'
+import './elements/button.js'
+import './elements/dialog.js'
 import './widget-localize/suggest-language.js'
 
 /**
  * Experimental "Polyfill" objects use to expand default browser window object!
  */
 const Polyfill = {}
+
+Polyfill.SuggestSupportedBrowser = function () {
+    if (!('serviceWorker' in navigator)
+        || (typeof HTMLDialogElement === 'undefined')
+        || (typeof Storage === "undefined")
+        || (typeof RTCPeerConnection === 'undefined')
+        || !window.indexedDB
+        || !('mediaDevices' in navigator)) {
+
+        popUpNotificationWidget.New(
+            "BAD BROWSER!!!!!!",
+            "You use '" + Polyfill.GetBrowserName() + "' that it can cause serious problem while use this platform! We suggest use latest chrome version",
+            "Error"
+        )
+        // centerNotificationWidget.New("LocaleText[54]", "LocaleText[55]", "Error")
+    }
+}
+
+Polyfill.GetBrowserName = function () {
+    let Sys = {}
+    let ua = navigator.userAgent.toLowerCase()
+    let s
+
+    if (s = ua.match(/msie ([\d.]+)/)) Sys.ie = s[1]
+    else if (s = ua.match(/firefox\/([\d.]+)/)) Sys.firefox = s[1]
+    else if (s = ua.match(/chrome\/([\d.]+)/)) Sys.chrome = s[1]
+    else if (s = ua.match(/opera.([\d.]+)/)) Sys.opera = s[1]
+    else if (s = ua.match(/version\/([\d.]+).*safari/)) Sys.safari = s[1]
+
+    if (Sys.ie) return 'IE: ' + Sys.ie
+    if (Sys.firefox) return 'Firefox: ' + Sys.firefox
+    if (Sys.chrome) return 'Chrome: ' + Sys.chrome
+    if (Sys.opera) return 'Opera: ' + Sys.opera
+    if (Sys.safari) return 'Safari: ' + Sys.safari
+}
 
 /**
  * Add some meta and link tag to header if user not install web app yet for not supported Application!!
@@ -19,7 +56,11 @@ Polyfill.PWA = function () {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js', { scope: "/" })
             .then(reg => {
-                reg.onupdatefound = function () { location.reload() } // TODO::: promote a dialog to user to update app by click update!
+                reg.onupdatefound = async function () {
+                    // TODO::: promote a dialog to user to update app by click update!
+                    await time.Sleep(1000)
+                    location.reload()
+                }
             })
     }
 
@@ -81,15 +122,15 @@ Polyfill.PWA = function () {
             // theme_color: Application.PresentationPreferences.ThemeColor,
             display: Application.PresentationPreferences.Display,
             orientation: Application.PresentationPreferences.Orientation,
-            start_url: window.location.origin + "/" + Application.UserPreferences.HomePage + "?utm_source=PWA&utm_medium=HomeScreen",
+            start_url: window.location.origin + "/" + users.active.HomePage + "?utm_source=PWA&utm_medium=HomeScreen",
             icons: [{ "sizes": "512x512", "type": "image/png", src: window.location.origin + "/" + Application.Icon }],
             shortcuts: [],
         }
-        for (page of Application.MostUsedPages) {
+        for (let pageID of Application.MostUsedPages) {
             manifest.shortcuts.push({
-                "name": Application.Pages[page].Info.Name,
-                "url": window.location.origin + "/" + Application.Pages[page].ID,
-                "description": Application.Pages[page].Info.Description,
+                "name": pages.poolByID[pageID].Info.Name,
+                "url": window.location.origin + "/" + pages.poolByID[pageID].ID,
+                "description": pages.poolByID[pageID].Info.Description,
             })
         }
         const manifestElement = document.createElement('link')
@@ -116,14 +157,14 @@ Polyfill.Meta = function () {
 }
 
 /**
- * Set language and region from Application.UserPreferences to html tag of DOM!
+ * Set language and region from users.active to html tag of DOM!
  * Call it each time language or region changed
  */
 Polyfill.SetLangAndDir = function () {
     // change <html lang="en" dir="ltr"> in language change
-    window.document.documentElement.lang = Application.UserPreferences.ContentPreferences.Language.iso639_1
-    if (Application.UserPreferences.ContentPreferences.Region.iso3166_1_a2 !== "") window.document.documentElement.lang += "-" + Application.UserPreferences.ContentPreferences.Region.iso3166_1_a2
-    window.document.dir = Application.UserPreferences.ContentPreferences.Language.dir
+    window.document.documentElement.lang = users.active.ContentPreferences.Language.iso639_1
+    if (!!users.active.ContentPreferences.Region.iso3166_1_a2) window.document.documentElement.lang += "-" + users.active.ContentPreferences.Region.iso3166_1_a2
+    window.document.dir = users.active.ContentPreferences.Language.dir
 }
 
 /**
@@ -186,21 +227,22 @@ Polyfill.SuggestLanguage = function () {
     // Check if language be in URL (hl parameter)
     const urlLangReg = Polyfill.GetLangRegFromURL()
     if (urlLangReg.l !== "" && Application.ContentPreferences.Languages.includes(urlLangReg.l)) {
-        Application.UserPreferences.ContentPreferences.Language = Languages.find(l => l.iso639_1 === urlLangReg.l)
-        if (urlLangReg.r) Application.UserPreferences.ContentPreferences.Region = Regions.find(r => r.iso3166_1_a2 === urlLangReg.r)
+        users.active.ContentPreferences.Language = language.poolByISO639_1[urlLangReg.l]
+        if (urlLangReg.r) users.active.ContentPreferences.Region = region.poolByISO3166_1_a2[urlLangReg.r]
     }
+    // TODO::: use browser language not good before suggest by IP!
     // Check browser languages list!
-    else {
-        for (let lang of window.navigator.languages) {
-            const hlParts = lang.split("-")
-            if (hlParts[0] !== "" && Application.ContentPreferences.Languages.includes(hlParts[0])) {
-                Application.UserPreferences.ContentPreferences.Language = Languages.find(l => l.iso639_1 === hlParts[0])
-                if (hlParts[1]) Application.UserPreferences.ContentPreferences.Region.iso3166_1_a2 = Regions.find(r => r.iso3166_1_a2 === hlParts[1])
-                break
-            }
-        }
-    }
+    // else {
+    //     for (let lang of window.navigator.languages) {
+    //         const hlParts = lang.split("-")
+    //         if (hlParts[0] !== "" && Application.ContentPreferences.Languages.includes(hlParts[0])) {
+    //             users.active.ContentPreferences.Language = language.poolByISO639_1[hlParts[0]]
+    //             if (hlParts[1]) users.active.ContentPreferences.Region.iso3166_1_a2 = region.poolByISO3166_1_a2[hlParts[1]]
+    //             break
+    //         }
+    //     }
+    // }
 
     // Suggest language by user IP!
-    widgets["suggest-language"].ConnectedCallback()
+    suggestLanguageWidget.ConnectedCallback()
 }
