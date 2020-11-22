@@ -1,0 +1,32 @@
+{
+    "en": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Unset",
+        "Guest",
+        "Registered",
+        "Person",
+        "Organization",
+        "Application",
+        "Artificial intelligence",
+        "All User Type"
+    ],
+    "fa": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "تنظیم نشده",
+        "مهمان",
+        "ثبت نام شده",
+        "شخص حقیقی",
+        "شخص حقوقی",
+        "برنامه",
+        "هوش مصنوعی",
+        "همه نوع کاربر"
+    ]
+}
