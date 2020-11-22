@@ -17,14 +17,59 @@ import './zbar-v0.wasm'
 const ZBar = {
     lastGrowTimestamp: 0,
 
-    SymbolTypes: {},
-    ConfigTypes: {}
+    /**
+     * ZBar Symbol Types
+     * 
+     * http://zbar.sourceforge.net/api/zbar_8h.html#f7818ad6458f9f40362eecda97acdcb0
+     */
+    SymbolTypes: {
+        NONE: 0, // no symbol decoded
+        PARTIAL: 1, // intermediate status
+        EAN8: 8, // EAN-8
+        UPCE: 9, // UPC-E
+        ISBN10: 10, // ISBN-10 (from EAN-13). @since 0.4
+        UPCA: 12,// UPC-A
+        EAN13: 13,// EAN-13
+        ISBN13: 14, // ISBN-13 (from EAN-13). @since 0.4
+        I25: 25,// Interleaved 2 of 5. @since 0.4
+        CODE39: 39, // Code 39. @since 0.4
+        PDF417: 57, // PDF417. @since 0.6
+        QRCODE: 64, // QR Code. @since 0.10
+        CODE128: 128,// Code 128
+        SYMBOL: 255, // 0x00ff     mask for base symbol type
+        ADDON2: 512,// 0x0200     2-digit add-on flag
+        ADDON5: 1280, // 0x0500    5-digit add-on flag
+        ADDON: 1792,// 0x0700     add-on flag mask
+    },
+
+    /**
+     * ZBar Config Types
+     * 
+     * http://zbar.sourceforge.net/api/zbar_8h.html#b1d0c464ecc4444928574c638f392136
+     */
+    ConfigTypes: {
+        ENABLE: 0, // enable symbology/feature 
+        ADD_CHECK: 1, // enable check digit when optional 
+        EMIT_CHECK: 2, // return check digit when present 
+        ASCII: 3, // enable full ASCII character set 
+        NUM: 4, // number of boolean decoder configs 
+
+        MIN_LEN: 32, // 0x20   minimum data length for valid decode 
+        MAX_LEN: 33, //        maximum data length for valid decode 
+
+        UNCERTAINTY: 64, // 0x40   required video consistency frames 
+
+        POSITION: 128, // 0x80     enable scanner to collect position data 
+
+        X_DENSITY: 256, // 0x100   image scanner vertical scan density 
+        Y_DENSITY: 257, //         image scanner horizontal scan density
+    }
 }
 
 /**
- * Instance
+ * 
+ * @returns {ImageScanner} instance
  */
-
 ZBar.GetInstance = async function () {
     // TODO::: Check and fix not call in app start!
     // console.log("Called")
@@ -67,6 +112,10 @@ ZBar.GetInstance = async function () {
     return ZBar.Instance
 }
 
+
+/**
+ * Get Last Memory Grow Timestamp
+ */
 ZBar.GetMemoryGrowTimestamp = function () {
     return ZBar.lastGrowTimestamp
 }
@@ -104,9 +153,20 @@ class ImageScanner extends CppObject {
         this.inst.ImageScanner_destory(this.ptr)
         this.ptr = 0
     }
-    setConfig(sym, conf, value) {
+    /**
+     * ZBar by default enable all symbol types. you can set config by this method. e.g.
+     * 
+     * Disable All Types: scanner.setConfig(ZBar.SymbolTypes.NONE, ZBar.ConfigTypes.ENABLE, 0)
+     * 
+     * Enable EAN13 type: scanner.setConfig(ZBar.SymbolTypes.EAN13, ZBar.ConfigTypes.ENABLE, 1)
+     * 
+     * @param {ZBar.SymbolTypes} symbolType 
+     * @param {ZBar.ConfigTypes} config 
+     * @param {number} value 0 || 1
+     */
+    setConfig(symbolType, configType, value) {
         this.checkAlive()
-        return this.inst.ImageScanner_set_config(this.ptr, sym, conf, value)
+        return this.inst.ImageScanner_set_config(this.ptr, symbolType, configType, value)
     }
     enableCache(enable = true) {
         this.checkAlive()
@@ -325,7 +385,7 @@ ZBar.GetDefaultScanner = async function () {
 }
 
 /**
- * 
+ * Scan Image
  * @param {Image} image 
  * @param {ImageScanner} scanner 
  */
@@ -348,43 +408,3 @@ ZBar.ScanRGBABuffer = async (buffer, width, height, scanner) => {
     image.destroy()
     return res
 }
-
-/**
- * ZBar Symbol Types
- */
-ZBar.SymbolTypes.NONE = 0 // no symbol decoded
-ZBar.SymbolTypes.PARTIAL = 1 // intermediate status
-ZBar.SymbolTypes.EAN8 = 8 // EAN-8
-ZBar.SymbolTypes.UPCE = 9 // UPC-E
-ZBar.SymbolTypes.ISBN10 = 10 // ISBN-10 (from EAN-13). @since 0.4
-ZBar.SymbolTypes.UPCA = 12 // UPC-A
-ZBar.SymbolTypes.EAN13 = 13 // EAN-13
-ZBar.SymbolTypes.ISBN13 = 14 // ISBN-13 (from EAN-13). @since 0.4
-ZBar.SymbolTypes.I25 = 25 // Interleaved 2 of 5. @since 0.4
-ZBar.SymbolTypes.CODE39 = 39 // Code 39. @since 0.4
-ZBar.SymbolTypes.PDF417 = 57 // PDF417. @since 0.6
-ZBar.SymbolTypes.QRCODE = 64 // QR Code. @since 0.10
-ZBar.SymbolTypes.CODE128 = 128 // Code 128
-ZBar.SymbolTypes.SYMBOL = 255 // 0x00ff     mask for base symbol type
-ZBar.SymbolTypes.ADDON2 = 512 // 0x0200     2-digit add-on flag
-ZBar.SymbolTypes.ADDON5 = 1280 // 0x0500    5-digit add-on flag
-ZBar.SymbolTypes.ADDON = 1792 // 0x0700     add-on flag mask
-
-/**
- * ZBar Config Types
- */
-ZBar.ConfigTypes.ENABLE = 0 // enable symbology/feature 
-ZBar.ConfigTypes.ADD_CHECK = 1 // enable check digit when optional 
-ZBar.ConfigTypes.EMIT_CHECK = 2 // return check digit when present 
-ZBar.ConfigTypes.ASCII = 3 // enable full ASCII character set 
-ZBar.ConfigTypes.NUM = 4 // number of boolean decoder configs 
-
-ZBar.ConfigTypes.MIN_LEN = 32 // 0x20   minimum data length for valid decode 
-ZBar.ConfigTypes.MAX_LEN = 33 //        maximum data length for valid decode 
-
-ZBar.ConfigTypes.UNCERTAINTY = 64 // 0x40   required video consistency frames 
-
-ZBar.ConfigTypes.POSITION = 128 // 0x80     enable scanner to collect position data 
-
-ZBar.ConfigTypes.X_DENSITY = 256 // 0x100   image scanner vertical scan density 
-ZBar.ConfigTypes.Y_DENSITY = 257 //         image scanner horizontal scan density

@@ -21,7 +21,7 @@ barcodeCameraScannerWidget.ConnectedCallback = function (options) {
     if (!options.ViewerElementID) options.ViewerElementID = "barcodeCameraScannerWidgetViewer"
     if (!options.ScanPeriod) options.ScanPeriod = 50 // 0.05 sec
     if (!options.ScanDelay) options.ScanDelay = 2000 // 2 sec, set to delay from last successful scan
-    if (!options.Formats) options.Formats = ['ean_13']
+    if (!options.Formats) options.Formats = [ZBar.SymbolTypes.EAN13]
     if (!options.ResolutionWidth) options.ResolutionWidth = 1920 // FHD is enough on many barcode
     if (!options.ResolutionHeight) options.ResolutionHeight = 1280 // FHD is enough on many barcode
     /**
@@ -42,6 +42,9 @@ barcodeCameraScannerWidget.ConnectedCallback = function (options) {
         this.video.hidden = true
         this.video.className = "barcodeCameraScannerWidget"
     }
+    if (!this.canvas) {
+        this.canvas = document.createElement('canvas')
+    }
 
     pageStylesElement.insertAdjacentHTML("beforeend", this.CSS)
     return this.HTML()
@@ -51,7 +54,7 @@ barcodeCameraScannerWidget.DisconnectedCallback = function () {
     this.disableScanner()
 }
 
-barcodeCameraScannerWidget.toggleViewer = function () {
+barcodeCameraScannerWidget.toggleViewer = function (element) {
     if (!this.viewerEnabled && !this.scannerEnabled) {
         // TODO::: toast related error
         return
@@ -73,6 +76,7 @@ barcodeCameraScannerWidget.toggleViewer = function () {
         barcodeViewerElement.appendChild(this.video)
     }
 
+    element.toggle()
     if (this.video.hidden) {
         this.viewerEnabled = true
         this.video.hidden = false
@@ -86,13 +90,12 @@ barcodeCameraScannerWidget.toggleViewer = function () {
 
 barcodeCameraScannerWidget.toggleScannerButton = function (element) {
     if (element.checked) {
-        element.checked = false
         this.disableScanner()
         if (this.viewerEnabled) this.toggleViewer()
     } else {
-        element.checked = true
         this.enableScanner()
     }
+    element.toggle()
 }
 
 /**
@@ -100,9 +103,13 @@ barcodeCameraScannerWidget.toggleScannerButton = function (element) {
  * get last result by call `let results = barcodeCameraScannerWidget.scanner.getResults()`
  */
 barcodeCameraScannerWidget.enableScanner = async function () {
-    if (!this.scanner) {
-        this.scanner = await ZBar.GetDefaultScanner()
-        // scanner.setConfig({})
+    if (!this.imageScanner) {
+        this.imageScanner = await ZBar.GetDefaultScanner()
+        this.imageScanner.setConfig(ZBar.SymbolTypes.NONE, ZBar.ConfigTypes.ENABLE, 0)
+        for (let type of this.Options.Formats) {
+            this.imageScanner.setConfig(type, ZBar.ConfigTypes.ENABLE, 1)
+        }
+        // this.imageScanner.enableCache(true)
     }
 
     if (this.scannerEnabled) return
@@ -153,42 +160,39 @@ barcodeCameraScannerWidget.zbarScaner = async function () {
     // TODO::: write benchmark to test below!
     // const imageBlob = await this.imageCapture.takePhoto()
     // const imageBitmap = await createImageBitmap(imageBlob)
-    // const canvas = document.createElement('canvas')
-    // canvas.width = imageBitmap.width
-    // canvas.height = imageBitmap.height
-    // const ctx = canvas.getContext('2d')
+    // this.canvas.width = imageBitmap.width
+    // this.canvas.height = imageBitmap.height
+    // const ctx = this.canvas.getContext('2d')
     // ctx.drawImage(imageBitmap, 0, 0, imageBitmap.width, imageBitmap.height)
     // const imgData = ctx.getImageData(0, 0, imageBitmap.width, imageBitmap.height)
-    // const res = await ZBar.ScanRGBABuffer(imgData.data.buffer, imageBitmap.width, imageBitmap.height, this.scanner)
+    // const res = await ZBar.ScanRGBABuffer(imgData.data.buffer, imageBitmap.width, imageBitmap.height, this.imageScanner)
 
     // TODO::: write benchmark to test below! It seems not efficient vs direct use `this.video` in canvas!
     // const imageBitmap = await this.imageCapture.grabFrame()
-    // const canvas = document.createElement('canvas')
-    // canvas.width = imageBitmap.width
-    // canvas.height = imageBitmap.height
-    // const ctx = canvas.getContext('2d')
+    // this.canvas.width = imageBitmap.width
+    // this.canvas.height = imageBitmap.height
+    // const ctx = this.canvas.getContext('2d')
     // ctx.drawImage(imageBitmap, 0, 0, imageBitmap.width, imageBitmap.height)
     // const imgData = ctx.getImageData(0, 0, imageBitmap.width, imageBitmap.height)
-    // const res = await ZBar.ScanRGBABuffer(imgData.data.buffer, imageBitmap.width, imageBitmap.height, this.scanner)
+    // const res = await ZBar.ScanRGBABuffer(imgData.data.buffer, imageBitmap.width, imageBitmap.height, this.imageScanner)
 
     // TODO::: change ZBar Image class to pass directly imageBitmap if `new ImageCapture(track).grabFrame()` more efficient!
     // const imageBlob = await this.imageCapture.takePhoto()
-    // const res = await ZBar.ScanImage(imageBlob, this.scanner)
+    // const res = await ZBar.ScanImage(imageBlob, this.imageScanner)
 
-    const canvas = document.createElement('canvas')
     const width = this.video.videoWidth
     const height = this.video.videoHeight
-    canvas.width = width
-    canvas.height = height
-    const ctx = canvas.getContext('2d')
+    this.canvas.width = width
+    this.canvas.height = height
+    const ctx = this.canvas.getContext('2d')
     ctx.drawImage(this.video, 0, 0, width, height)
     const imgData = ctx.getImageData(0, 0, width, height)
-    const res = await ZBar.ScanRGBABuffer(imgData.data.buffer, width, height, this.scanner)
+    const res = await ZBar.ScanRGBABuffer(imgData.data.buffer, width, height, this.imageScanner)
 
     return res
 }
 
-barcodeCameraScannerWidget.audioCtx = new (window.AudioContext || window.webkitAudioContext || window.audioContext)
+barcodeCameraScannerWidget.audioCtx = new AudioContext()
 
 /**
  * 
