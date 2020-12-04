@@ -1,10 +1,12 @@
 {
     "en": [
-        "Error Not Found",
+        "Error",
+        "Not Found",
         "An error occurred but it is not registered yet to show more detail to you!"
     ],
     "fa": [
-        "خطا یافت نشد",
+        "خطا",
+        "یافت نشد",
         "خطایی رخ داده است ولی جزییات آن خطا برای نمایش به شما ثبت نشده است"
     ]
 }
