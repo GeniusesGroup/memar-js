@@ -1,8 +1,9 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import './users.js'
+import './error.js'
+import '../users.js'
 
-const pages = {
+Giti.Pages = {
     ActivePage: null,
     PreviousPage: null,
 
@@ -14,8 +15,16 @@ const pages = {
  * register given page in pages.poolByID and call page.Init() to initialize page.
  * @param {object} page 
  */
-pages.RegisterPage = function(page) {
+Giti.Pages.RegisterPage = function (page) {
     this.poolByID[page.ID] = page
+}
+
+/**
+ * get a page by given page ID
+ * @param {string} pageID 
+ */
+Giti.Pages.GetByID = function (pageID) {
+    return this.poolByID[pageID]
 }
 
 /** 
@@ -23,14 +32,14 @@ pages.RegisterPage = function(page) {
  * @param {object} page
  * @param {string} uri
  */
-pages.Router = function (page, uri) {
+Giti.Pages.Router = async function (page, uri) {
     // Warn active page about routing occur and do what it want to do!
-    if (pages.ActivePage) {
-        const ready = pages.ActivePage.DisconnectedCallback()
-        if (ready === false) return
+    if (Giti.Pages.ActivePage) {
+        const leave = await Giti.Pages.ActivePage.DisconnectedCallback()
+        if (leave === false) return
     }
     // Save previous page for any usage!
-    pages.PreviousPage = pages.ActivePage
+    Giti.Pages.PreviousPage = Giti.Pages.ActivePage
 
     // Tell others about new routing to do whatever they must do on url change!
     window.dispatchEvent(new Event('urlChanged'))
@@ -45,6 +54,7 @@ pages.Router = function (page, uri) {
 
         page.Conditions = {}
         // Set page condition same as parameters in URLs!
+        // TODO::: handle conditions types like boolean
         for (let sp of URI.searchParams.keys()) {
             if (!page.Conditions[sp]) {
                 let queryValue = URI.searchParams.get(sp)
@@ -64,22 +74,22 @@ pages.Router = function (page, uri) {
 
     if (page.ID === "landings") {
         if (page.Conditions.id) {
-            pages.LoadLanding(page.Conditions.id)
+            Giti.Pages.LoadLanding(page.Conditions.id)
         } else {
-            pages.Router({ ID: "error-404" }, "")
+            Giti.Pages.Router({ ID: "error-404" }, "")
         }
         return
     }
 
     // Find requested app!
-    pages.ActivePage = pages.poolByID[page.ID]
-    if (!pages.ActivePage) {
+    Giti.Pages.ActivePage = Giti.Pages.poolByID[page.ID]
+    if (!Giti.Pages.ActivePage) {
         // Requested page not exist
-        pages.Router({ ID: "error-404" }, "")
+        Giti.Pages.Router({ ID: "error-404" }, "")
         return
     }
 
-    if (pages.ActivePage.ID !== "error-404" || pages.ActivePage.ID !== "error-403" || pages.ActivePage.ID !== "error-500") {
+    if (Giti.Pages.ActivePage.ID !== "error-404" || Giti.Pages.ActivePage.ID !== "error-403" || Giti.Pages.ActivePage.ID !== "error-500") {
         // check requested condition support by page!
         for (let conditionName in page.Conditions) {
             if (conditionName !== "hl"  // hl==hrefLanguage
@@ -88,38 +98,38 @@ pages.Router = function (page, uri) {
                 && conditionName !== "utm_medium"
                 && conditionName !== "utm_campaign"
                 && conditionName !== "rd"
-                && pages.ActivePage.Conditions[conditionName] === undefined) {  // rd==redirect
+                && Giti.Pages.ActivePage.Conditions[conditionName] === undefined) {  // rd==redirect
                 // Requested page with desire condition not exist
-                pages.Router({ ID: "error-404" }, "")
+                Giti.Pages.Router({ ID: "error-404" }, "")
                 return
             }
 
-            if (Array.isArray(pages.ActivePage.Conditions[conditionName]) && !Array.isArray(page.Conditions[conditionName])) {
-                pages.ActivePage.Conditions[conditionName] = [page.Conditions[conditionName]]
+            if (Array.isArray(Giti.Pages.ActivePage.Conditions[conditionName]) && !Array.isArray(page.Conditions[conditionName])) {
+                Giti.Pages.ActivePage.Conditions[conditionName] = [page.Conditions[conditionName]]
             } else {
-                pages.ActivePage.Conditions[conditionName] = page.Conditions[conditionName]
+                Giti.Pages.ActivePage.Conditions[conditionName] = page.Conditions[conditionName]
             }
         }
     }
 
     // Update page title with page full name and update some meta tags!
     // This data also can be update in each page by ConnectedCallback method!
-    window.document.title = pages.ActivePage.Info.Name
-    window.document.description.content = pages.ActivePage.Info.Description
-    window.document.robots.content = pages.ActivePage.Robots
+    window.document.title = Giti.Pages.ActivePage.Info.Name
+    window.document.description.content = Giti.Pages.ActivePage.Info.Description
+    window.document.robots.content = Giti.Pages.ActivePage.Robots
     // Twitter card  https://developer.twitter.com/en/docs/tweets/optimize-with-cards/guides/getting-started.html
     // The Open Graph protocol https://www.ogp.me/
 
     // Add page HTML & CSS to DOM
     // TODO::: not efficient below code!
-    pageStylesElement.innerHTML = pages.ActivePage.CSS
+    pageStylesElement.innerHTML = Giti.Pages.ActivePage.CSS
 
-    pages.ActivePage.ConnectedCallback()
+    Giti.Pages.ActivePage.ConnectedCallback()
 }
 
-pages.LoadLanding = async function (landingName) {
+Giti.Pages.LoadLanding = async function (landingName) {
     // push state into the history stack
-    window.history.pushState({}, "", "/landings?id="+landingName)
+    window.history.pushState({}, "", "/landings?id=" + landingName)
 
     const lang = users.active.ContentPreferences.Language.iso639_1 || Application.ContentPreferences.Language.iso639_1
     try {
@@ -131,10 +141,10 @@ pages.LoadLanding = async function (landingName) {
                 window.document.title = landingName
                 break
             case 404:
-                pages.Router({ ID: "error-404" }, "")
+                Giti.Pages.Router({ ID: "error-404" }, "")
                 break
             default:
-                pages.Router({ ID: "error-500" }, "")
+                Giti.Pages.Router({ ID: "error-500" }, "")
         }
     } catch (err) {
         // TODO::: network error
@@ -165,7 +175,7 @@ function clickListener(event) {
     if (goUrl.href === window.location.href) return
 
     // Do routing instead of reload page!
-    pages.Router({}, goUrl.href)
+    Giti.Pages.Router({}, goUrl.href)
 }
 window.addEventListener('click', clickListener, false)
 
@@ -175,7 +185,7 @@ function stateChangeListener(event) {
     event.preventDefault()
 
     // Do routing instead of reload page!
-    pages.Router({}, window.location.href)
+    Giti.Pages.Router({}, window.location.href)
 }
 window.addEventListener('popstate', stateChangeListener, false)
 window.addEventListener('pushState', stateChangeListener, false)
@@ -193,4 +203,5 @@ const page = {
     HTML: () => ``,
     CSS: '',
     Templates: {},
+    Options: {},
 }

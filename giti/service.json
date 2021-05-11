@@ -1,0 +1,42 @@
+{
+    "en": [
+        "Pre-Alpha",
+        "Pre-Alpha refers to all activities performed during the software project before formal testing.",
+        "Alpha",
+        "Alpha is the first phase to begin software testing",
+        "Beta",
+        "Beta generally begins when the software is feature complete but likely to contain a number of known or unknown bugs.",
+        "Perpetual-Beta",
+        "Perpetual-Beta where new features are continually added to the software without establishing a final 'stable' release. This technique may allow a developer to delay offering full support and responsibility for remaining issues.",
+        "Open-Beta",
+        "Open-Beta is for a larger group, or anyone interested.",
+        "Closed-Beta",
+        "Closed-Beta is released to a restricted group of individuals for a user test by invitation.",
+        "Release-Candidate",
+        "Release-Candidate also known as 'going silver', is a beta version with potential to be a stable product, which is ready to release unless significant bugs emerge",
+        "Stable-Release",
+        "Stable-Release Also called production release, the stable release is the last release candidate (RC) which has passed all verifications / tests.",
+        "End-Of-Life",
+        "End-Of-Life indicate no longer supported and continue its existence until to ExpiryDate!"
+    ],
+    "fa": [
+        "نسخه قبل از آلفا",
+        "Alpha is the first phase to begin software testing",
+        "آلفا",
+        "",
+        "بتا",
+        "",
+        "بتای همیشکی",
+        "",
+        "بتای باز",
+        "",
+        "بتای بسته",
+        "",
+        "کاندید عرضه",
+        "",
+        "عرضه پایدار",
+        "",
+        "اتمام عمر",
+        ""
+    ]
+}
