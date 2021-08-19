@@ -1,58 +1,21 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-const language = {
-    poolByID: {},
-    poolByISO639_1: {},
-    poolByNativeName: {},
-}
+// Languages code
+const LanguageUnset = 0
+const LanguageMachine = 1
+const LanguageMathematics = 2
+const LanguageMusical = 3
+const LanguageSign = 4  // https://en.wikipedia.org/wiki/Sign_language
 
-/**
- * returns native name of given language ID
- * @param {number} langID 
- */
-language.String = function (langID) {
-    return this.poolByID[langID].nativeName
-}
-
-/**
- * return all data about given language ID
- * @param {number} langID 
- */
-language.GetByID = function (langID) {
-    return this.poolByID[langID]
-}
-
-language.GetByNativeName = function (nativeName) {
-    return this.poolByNativeName[nativeName]
-}
-
-language.GetSupportedByNativeName = function (nativeName) {
-    const lang = this.poolByNativeName[nativeName]
-    if (!lang) return null
-    if (!Application.ContentPreferences.Languages.includes(lang.iso639_1)) return null
-    return lang
-}
-
-language.GetAllAsOptions = function () {
-    let options = ""
-    for (let l of this.Languages) {
-        options += `<option value="${l.nativeName}">${l.englishName}</option>`
-    }
-    return options
-}
-
-language.GetAppSupportedAsOptions = function () {
-    let options = ""
-    for (let l of this.Languages) {
-        if (!Application.ContentPreferences.Languages.includes(l.iso639_1)) continue
-        options += `<option value="${l.nativeName}">${l.englishName}</option>`
-    }
-    return options
-}
+const LanguagePersian = 5
+const LanguageEnglish = 6
+const LanguageRussian = 7
+const LanguageArabic = 8
 
 // https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
 language.Languages = [
     {
+        ID: LanguageArabic,
         englishName: "Arabic",
         nativeName: "العربية",
         iso639_1: "ar",
@@ -60,7 +23,6 @@ language.Languages = [
         iso639_2B: "ara",
         iso639_3: "ara",
         dir: "rtl",
-        id: 3,
     }, {
         englishName: "Chinese",
         nativeName: "中文",
@@ -70,6 +32,7 @@ language.Languages = [
         iso639_3: "zho",
         dir: "ltr"
     }, {
+        ID: LanguageEnglish,
         englishName: "English",
         nativeName: "English",
         iso639_1: "en",
@@ -77,7 +40,6 @@ language.Languages = [
         iso639_2B: "eng",
         iso639_3: "eng",
         dir: "ltr",
-        id: 0,
     }, {
         englishName: "French",
         nativeName: "français",
@@ -103,6 +65,7 @@ language.Languages = [
         iso639_3: "hin",
         dir: "ltr"
     }, {
+        ID: LanguagePersian,
         englishName: "Persian",
         nativeName: "فارسی",
         iso639_1: "fa",
@@ -110,8 +73,8 @@ language.Languages = [
         iso639_2B: "per",
         iso639_3: "fas",
         dir: "rtl",
-        id: 1,
     }, {
+        ID: LanguageRussian,
         englishName: "Russian",
         nativeName: "русский",
         iso639_1: "ru",
@@ -121,11 +84,3 @@ language.Languages = [
         dir: "ltr"
     },
 ]
-
-// function init() {
-for (let l of language.Languages) {
-    language.poolByID[l.id] = l
-    language.poolByISO639_1[l.iso639_1] = l
-    language.poolByNativeName[l.nativeName] = l
-}
-// }

@@ -13,15 +13,21 @@
  * @property {string} Name 
  * @property {string} Description
  * @property {string[]} TAGS
- * @property {function} HTTPHandler GetProduct
+ * 
+ * @property {function} ServeHTTP GetProduct
 
  * @typedef {Object} Authorization is the service structure
  * @property {number} CRUDRead
  * @property {number} UserTypeAll UserTypeOwner
  */
 const Service = {
-    URN: "",
-    Domain: "Domain Name",
+    URN: {
+        URN: "",
+        ID: "",
+        Domain: "",
+        Scope: "service",
+        Name: "",
+    },
     ID: 0,
     IssueDate: 0,
     ExpireDate: 0,
@@ -34,11 +40,13 @@ const Service = {
         UserType: UserTypeAll, // UserTypeOwner
     },
 
-    Name: "Service Name",
-    Description: "Service Description",
-    TAGS: [""],
+    Detail: {
+        Name: "Service Name",
+        Description: "Service Description",
+        TAGS: [],
+    },
 
-    HTTPHandler: null,
+    ServeHTTP: null,
 }
 
 /**

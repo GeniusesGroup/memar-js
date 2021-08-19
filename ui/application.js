@@ -1,16 +1,21 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import './polyfill.js'
-import './users.js'
 import './pages.js'
-import './thing.js'
-import './language.js'
-import './region.js'
-import './price/currency.js'
+import './history.js'
+import './widgets.js'
+import '../region.js'
+import '../os/os.js'
+import '../polyfills/audio.js'
+import '../polyfills/button.js'
+import '../polyfills/dialog.js'
+import '../polyfills/element.js'
+import '../polyfills/meta.js'
+import '../language/language.js'
+import '../price/currency.js'
 
 /**
  * Experimental "Application" objects use to expand default browser window object!
- * Application default data just use if user have not distinction yet otherwise user defaults in users.active will used!
+ * Application default data just use if user have not distinction yet otherwise user defaults in OS.User will used!
  */
 const Application = {
     Icon: "", // Image location
@@ -49,41 +54,24 @@ const Application = {
 /**
  * Start the application
  */
-Application.Start = function () {
+Application.Start = async function () {
+    await OS.Init()
+
     Application.ContentPreferences.Language = language.poolByISO639_1[Application.ContentPreferences.Languages[0]]
     Application.ContentPreferences.Region = region.poolByISO3166_1_a3[Application.ContentPreferences.Regions[0]]
     Application.ContentPreferences.Currency = currency.poolByISO4217[Application.ContentPreferences.Currencies[0]]
-
-    thing.init()
-    const firstTime = users.LoadState()
 
     Application.LoadDesignLanguageStyles()
     Application.LoadColorScheme()
     Application.LoadFontFamilies()
 
-    const initScript = document.createElement('script')
-    initScript.src = "/init-" + users.active.ContentPreferences.Language.iso639_1 + ".js"
-    document.head.appendChild(initScript)
-    initScript.onload = function () {
-
-        Polyfill.SetLangAndDir()
-        Polyfill.PWA()
-        Polyfill.Meta()
-
-        if (firstTime) {
-            Polyfill.SupportedLanguagesAlternateLink()
-            Polyfill.SuggestLanguage()
-            pages.Router({}, window.location.href)
-        } else {
-            // First check user preference in PWA version
-            if (!(window.matchMedia('(display-mode: browser)').matches) && window.location.pathname === "/") {
-                window.history.replaceState({}, "", "/" + users.active.HomePage)
-                pages.Router({ ID: users.active.HomePage }, "")
-            } else {
-                // Do normal routing!
-                pages.Router({}, window.location.href)
-            }
-        }
+    // First check user preference in PWA version
+    if (!(window.matchMedia('(display-mode: browser)').matches) && window.location.pathname === "/") {
+        window.history.replaceState({}, "", "/" + OS.User.HomePage)
+        this.ActivatePage(Application.GetPageByURNName(OS.User.HomePage), null)
+    } else {
+        // Do normal routing!
+        this.ActivatePageByURL(window.location.href)
     }
 }
 
@@ -112,7 +100,7 @@ window.document.head.appendChild(pageStylesElement)
  * Load active design language styles indicated in user preferences!
  */
 Application.LoadDesignLanguageStyles = function () {
-    if (users.active.PresentationPreferences.DesignLanguage === "material") {
+    if (OS.User.PresentationPreferences.DesignLanguage === "material") {
         Application.DesignLanguageStyles = "/design-language--material.css"
         designLanguageElement.href = Application.DesignLanguageStyles
         // Load related icon font family
@@ -120,16 +108,16 @@ Application.LoadDesignLanguageStyles = function () {
         const iconsFont = new FontFace('Material Icons', 'url(https://fonts.gstatic.com/s/materialicons/v55/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2)');
         iconsFont.load()
         window.document.fonts.add(iconsFont)
-    } else if (users.active.PresentationPreferences.DesignLanguage === "flat") Application.DesignLanguageStyles = "/design-language--flat.css"
-    else if (users.active.PresentationPreferences.DesignLanguage === "fluent") Application.DesignLanguageStyles = "/design-language--fluent.css"
-    else if (users.active.PresentationPreferences.DesignLanguage === "ant") Application.DesignLanguageStyles = "/design-language--ant.css"
+    } else if (OS.User.PresentationPreferences.DesignLanguage === "flat") Application.DesignLanguageStyles = "/design-language--flat.css"
+    else if (OS.User.PresentationPreferences.DesignLanguage === "fluent") Application.DesignLanguageStyles = "/design-language--fluent.css"
+    else if (OS.User.PresentationPreferences.DesignLanguage === "ant") Application.DesignLanguageStyles = "/design-language--ant.css"
 }
 
 /**
  * Load active font families by their names in user preferences!
  */
 Application.LoadFontFamilies = function () {
-    if (users.active.PresentationPreferences.PrimaryFontFamily === "Roboto") {
+    if (OS.User.PresentationPreferences.PrimaryFontFamily === "Roboto") {
         // https://fonts.googleapis.com/css?family=Roboto
         Application.PrimaryFont = new FontFace('Roboto', 'url(https://fonts.gstatic.com/s/roboto/v19/KFOmCnqEu92Fr1Mu72xKOzY.woff2)');
         Application.PrimaryFont.load()
@@ -142,42 +130,25 @@ Application.LoadFontFamilies = function () {
  * Use generic variables to easy change theme (theming) anywhere.
  */
 Application.LoadColorScheme = function () {
-    if (users.active.PresentationPreferences.ColorScheme === "no-preference") {
+    if (OS.User.PresentationPreferences.ColorScheme === "no-preference") {
         // get browser or OS preference
         themeStylesElement.href = "/theme-light.css"
     }
-    else if (users.active.PresentationPreferences.ColorScheme === "dark") themeStylesElement.href = "/theme-light.css"
-    else if (users.active.PresentationPreferences.ColorScheme === "light") themeStylesElement.href = "/theme-light.css"
+    else if (OS.User.PresentationPreferences.ColorScheme === "dark") themeStylesElement.href = "/theme-light.css"
+    else if (OS.User.PresentationPreferences.ColorScheme === "light") themeStylesElement.href = "/theme-light.css"
 }
 
 /**
- * copyObject use to copy an object by structure and values to other!
- * @param {object} src 
- * @param {object} copyTo 
+ * before exit app do some checks and write some states!
  */
-function copyObject(src, copyTo) {
-    /**
-     * if conflict set to true it means copy objects have conflicts in all or some keys or values
-     */
-    let conflict = false
-
-    for (let key in copyTo) {
-        if (typeof src[key] === "undefined") {
-            conflict = true
-            continue
-        }
-
-        if (typeof copyTo[key] === 'object') {
-            if (typeof src[key] !== 'object') {
-                conflict = true
-                continue
-            }
-
-            copyObject(src[key], copyTo[key])
-        } else {
-            copyTo[key] = src[key]
+window.onbeforeunload = async function (event) {
+    // Warn active page about close||refresh occur and do what it want to do!
+    if (Application.pages.activePage) {
+        const leave = await Application.pages.activePage.DisconnectedCallback()
+        if (leave === false) {
+            event.preventDefault()
+            return
         }
     }
-
-    return conflict
+    OS.Shutdown()
 }
