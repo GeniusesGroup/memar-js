@@ -23,6 +23,13 @@ base64.stdWithoutPadding.Decode = function (str) {
     return atob(str)
 }
 
+base64.stdWithoutPadding.HashTo32Byte = async function (pass) {
+    const encoder = new TextEncoder()
+    const passAsArray = encoder.encode(pass)
+    const hash = await crypto.subtle.digest('SHA-256', passAsArray)
+    return base64.stdWithoutPadding.Encode(String.fromCharCode(...new Uint8Array(hash)))
+}
+
 base64.url.Encode = function (str) {
     return btoa(str).replace("+", "-").replace("/", "_")
 }
