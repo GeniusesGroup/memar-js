@@ -1,12 +1,14 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import '../widgets.js'
-
 /**
  * 
  */
 const popUpNotificationWidget = {
-    ID: "notification-pop-up",
+    URN: {
+        URN: "",
+        ID: "",
+        Name: "notification-pop-up",
+    },
     Conditions: {
         Duration: 10000, // 10 sec
     },
@@ -15,7 +17,7 @@ const popUpNotificationWidget = {
     Templates: {},
     Queue: [],
 }
-widgets.poolByID[popUpNotificationWidget.ID] = popUpNotificationWidget
+Application.RegisterWidget(popUpNotificationWidget)
 
 /**
  * 
@@ -41,7 +43,7 @@ popUpNotificationWidget.DisconnectedCallback = function () {
  * 
  * @param {string} title 
  * @param {string} message 
- * @param {string} type 
+ * @param {number} type send one of the const in end of this file
  */
 popUpNotificationWidget.New = function (title, message, type) {
     let details = {
@@ -51,20 +53,25 @@ popUpNotificationWidget.New = function (title, message, type) {
     }
 
     switch (type) {
-        case "Info":
+        case popUpNotificationWidgetTypeInfo:
             details.Icon = "info"
+            details.TypeAsString = "Info"
             break
-        case "Warning":
+        case popUpNotificationWidgetTypeWarning:
             details.Icon = "warning"
+            details.TypeAsString = "Warning"
             break
-        case "Error":
+        case popUpNotificationWidgetTypeError:
             details.Icon = "cancel"
+            details.TypeAsString = "Error"
             break
-        case "Success":
+        case popUpNotificationWidgetTypeSuccess:
             details.Icon = "done"
+            details.TypeAsString = "Success"
             break
         default:
             details.Icon = "notifications"
+            details.TypeAsString = "Notifications"
             break
     }
 
@@ -86,3 +93,8 @@ popUpNotificationWidget.Next = function (timer) {
 popUpNotificationWidget.ResetTimer = function () {
     setTimeout(popUpNotificationWidget.Next, popUpNotificationWidget.Conditions.Duration, true)
 }
+
+const popUpNotificationWidgetTypeInfo = 0
+const popUpNotificationWidgetTypeWarning = 1
+const popUpNotificationWidgetTypeError = 2
+const popUpNotificationWidgetTypeSuccess = 3

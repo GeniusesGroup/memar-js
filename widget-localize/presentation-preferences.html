@@ -7,7 +7,7 @@
 
     <div>
         <!-- Change design language by user special day like birthday, wedding, ... -->
-        <select id="designLanguage" onchange="presentationPreferencesWidget.SetDesignLanguage(this.value)" value="${users.active.PresentationPreferences.DesignLanguage}">
+        <select id="designLanguage" onchange="presentationPreferencesWidget.SetDesignLanguage(this.value)" value="${OS.User.PresentationPreferences.DesignLanguage}">
             <option value="material">Material</option>
             <option value="flat" disabled>Flat</option>
             <option value="fluent" disabled>Fluent</option>
@@ -17,14 +17,14 @@
         </select>
         <label for="designLanguage">${LocaleText[2]}</label>
 
-        <select id="colorScheme" onchange="presentationPreferencesWidget.SetColorScheme(this.value)" value="${users.active.PresentationPreferences.ColorScheme}">
+        <select id="colorScheme" onchange="presentationPreferencesWidget.SetColorScheme(this.value)" value="${OS.User.PresentationPreferences.ColorScheme}">
             <option value="no-preference">${LocaleText[5]}</option>
             <option value="light">${LocaleText[6]}</option>
             <option value="dark">${LocaleText[7]}</option>
         </select>
         <label for="colorScheme">${LocaleText[3]}</label>
 
-        <select id="font" onchange="presentationPreferencesWidget.SetPrimaryFont(this.value)" .value=${users.active.PresentationPreferences.PrimaryFontFamily}>
+        <select id="font" onchange="presentationPreferencesWidget.SetPrimaryFont(this.value)" .value=${OS.User.PresentationPreferences.PrimaryFontFamily}>
             <option value='Roboto'>Roboto</option>
         </select>
         <label for="font">${LocaleText[4]}</label>

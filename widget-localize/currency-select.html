@@ -1,0 +1,12 @@
+<!-- For license and copyright information please see LEGAL file in repository -->
+
+<input type="text" id="currencyWidgetInput" list="currenciesList"
+       value="${localStorage.getItem('LastCurrencyInCurrencySelectWidget') || ''}"
+       onkeydown="CurrencySelectWidget.onKeyDownInputElement(this, ${options.identifier})"
+       onchange="CurrencySelectWidget.onChangeInputElement(this, ${options.identifier})"
+       validityMessage-Default="${LocaleText[0]}"
+       oninvalid="this.warnValidity()" />
+<label for="currencyWidgetInput">${LocaleText[1]}</label>
+<datalist id="currenciesList">
+    ${options.appSupported ? CurrencySelectWidget.GetAppSupportedAsOptions() : CurrencySelectWidget.GetAllAsOptions() }
+</datalist>

@@ -1,18 +1,20 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import '../widgets.js'
-
 /**
  * 
  * https://tools.ietf.org/html/bcp47
  */
 const forceLeavePageWidget = {
-    ID: "force-leave-page",
+    URN: {
+        URN: "",
+        ID: "",
+        Name: "force-leave-page",
+    },
     HTML: () => ``,
     CSS: '',
     Templates: {}
 }
-widgets.RegisterWidget(forceLeavePageWidget)
+Application.RegisterWidget(forceLeavePageWidget)
 
 forceLeavePageWidget.ConnectedCallback = async function () {
     if (!this.dialogElement) {

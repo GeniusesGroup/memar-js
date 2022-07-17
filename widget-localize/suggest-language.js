@@ -1,15 +1,18 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import '../users.js'
-import '../widgets.js'
-import '../language.js'
-import '../region.js'
+import '../language/language.js'
+import '../region/region.js'
+import '../error/error.js'
 
 /**
  * Guess and suggest in stateless localization about change language to its native lang by IP location!
  */
 const suggestLanguageWidget = {
-    ID: "suggest-language",
+    URN: {
+        URN: "",
+        ID: "",
+        Name: "suggest-language",
+    },
     Text: {
         "en": [
             "Suggest edit app language",
@@ -44,34 +47,30 @@ const suggestLanguageWidget = {
     CSS: '',
     Templates: {}
 }
-widgets.poolByID[suggestLanguageWidget.ID] = suggestLanguageWidget
+Application.RegisterWidget(suggestLanguageWidget)
 
 suggestLanguageWidget.ConnectedCallback = async function () {
     try {
         // Guess language and region by user IP location and set related localeText!
-        // https://api.ipdata.co/?api-key=test
-        // https://ipinfo.io/json
-        // http://ip-api.com/json
-        // http://api.ipgeolocationapi.com/geolocate
+
         const res = await fetch('https://ipapi.co/json')
         const jsonRes = await res.json()
 
         this.guessedLanguage = jsonRes.languages.split(",")[0].split("-")[0]
         this.guessedRegion = jsonRes.country
-        if (this.guessedLanguage !== users.active.ContentPreferences.Language.iso639_1 && Application.ContentPreferences.Languages.includes(this.guessedLanguage)) {
+        if (this.guessedLanguage !== OS.User.ContentPreferences.Language.iso639_1 && Application.ContentPreferences.Languages.includes(this.guessedLanguage)) {
             const LocaleText = this.Text[this.guessedLanguage]
 
-            const suggestLanguageElement = window.document.createElement("div")
-            suggestLanguageElement.id = "suggestLanguage"
-            suggestLanguageElement.innerHTML = this.HTML(LocaleText)
+            this.suggestLanguageElement = window.document.createElement("div")
+            this.suggestLanguageElement.innerHTML = this.HTML(LocaleText)
             const suggestLanguageStyle = window.document.createElement("style")
             suggestLanguageStyle.innerHTML = this.CSS
-            suggestLanguageElement.appendChild(suggestLanguageStyle)
+            this.suggestLanguageElement.appendChild(suggestLanguageStyle)
 
-            window.document.documentElement.appendChild(suggestLanguageElement)
+            window.document.documentElement.appendChild(this.suggestLanguageElement)
         }
     } catch (err) {
-        errors.HandleError(err)
+        Err.NotifyAnyToUser(err)
     }
 }
 
@@ -79,12 +78,12 @@ suggestLanguageWidget.DisconnectedCallback = function () {
 }
 
 suggestLanguageWidget.DismissDialog = function () {
-    document.getElementById("suggestLanguage").remove()
+    this.suggestLanguageElement.remove()
 }
 
 suggestLanguageWidget.ChangeLanguage = function () {
-    users.active.ContentPreferences.Language = language.poolByISO639_1[suggestLanguageWidget.guessedLanguage]
-    users.active.ContentPreferences.Region = region.Regions.find(r => r.iso3166_1_a2 === suggestLanguageWidget.guessedRegion)
+    OS.User.ContentPreferences.Language = language.poolByISO639_1[suggestLanguageWidget.guessedLanguage]
+    OS.User.ContentPreferences.Region = region.poolByISO3166_1_a2[suggestLanguageWidget.guessedRegion]
 
     const url = new URL(window.location.href)
     url.searchParams.set('hl', suggestLanguageWidget.guessedLanguage + "-" + suggestLanguageWidget.guessedRegion)

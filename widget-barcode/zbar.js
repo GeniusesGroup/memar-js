@@ -1,6 +1,6 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import '../errors.js'
+import '../error/error.js'
 import './zbar-v0.wasm'
 
 /**
@@ -105,7 +105,7 @@ ZBar.GetInstance = async function () {
             emscripten_notify_memory_growth(0)
         } catch (err) {
             // TODO::: toast better error text for non IT experts!
-            errors.HandleError(err)
+            Err.NotifyAnyToUser(err)
             return
         }
     }

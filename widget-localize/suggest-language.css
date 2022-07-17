@@ -1,6 +1,6 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-#suggestLanguage dialog {
+dialog#suggestLanguage {
     position: fixed;
     max-width: 600px;
     text-align: center;
@@ -10,6 +10,6 @@
     top: 0;
 }
 
-#suggestLanguage dialog div {
+dialog#suggestLanguage div {
     padding-bottom: 0px;
 }

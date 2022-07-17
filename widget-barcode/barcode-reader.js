@@ -1,15 +1,19 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import '../time.js'
+import * as timer from '../timer/sleep.js'
 
 const barcodeReaderWidget = {
-    ID: "barcode-reader",
+    URN: {
+        URN: "",
+        ID: "",
+        Name: "barcode-reader",
+    },
     Conditions: {},
     HTML: () => ``,
     CSS: '',
     Templates: {},
 }
-widgets.RegisterWidget(barcodeReaderWidget)
+Application.RegisterWidget(barcodeReaderWidget)
 
 /**
  * 
@@ -22,10 +26,10 @@ barcodeReaderWidget.ConnectedCallback = function (options) {
     if (!options.minLength) options.minLength = 8 // Minimum length for a scanning
     if (!options.Formats) options.Formats = [ZBar.SymbolTypes.EAN13]
     if (!options.prefixKeyCodes) options.prefixKeyCodes = [] // Chars to remove and means start of scanning
-    if (!options.suffixKeyCodes) options.suffixKeyCodes = [9, 13], // Chars to remove and means end of scanning! 9=tab & 13=enter
-        function test(string) {
-            barcodeCameraScannerWidget.Beep(200, 100, 5)
-        }
+    if (!options.suffixKeyCodes) options.suffixKeyCodes = [9, 13] // Chars to remove and means end of scanning! 9=tab & 13=enter
+    function test(string) {
+        HTMLAudioElement.Beep(200, 100, 5)
+    }
     if (!options.CallBackResults) options.CallBackResults = test
     this.Options = options
 
@@ -46,6 +50,7 @@ barcodeReaderWidget.toggleReaderButton = function (element) {
         this.enableScanner()
     }
     element.toggle()
+    element.blur()
 }
 
 barcodeReaderWidget.enableScanner = function () {
@@ -102,7 +107,7 @@ barcodeReaderWidget.keydownListener = async function (event) {
     }
 
     const len = barcodeReaderWidget.barcodeString.length
-    await time.Sleep(barcodeReaderWidget.Options.avgTimeByChar)
+    await timer.Sleep(barcodeReaderWidget.Options.avgTimeByChar)
 
     if (barcodeReaderWidget.barcodeString.length === len) {
         barcodeReaderWidget.handleBarcodeString()

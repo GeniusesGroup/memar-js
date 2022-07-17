@@ -7,19 +7,29 @@
 
     <div>
         <div>
-            <input type="text" id="language" list=languages value="${users.active.ContentPreferences.Language.nativeName}" onchange="contentPreferencesWidget.ChangeLanguage(this)" onfocus="this.value=''" validationMessage="${LocaleText[4]}">
+            <input type="text" id="language" list=languages value="${OS.User.ContentPreferences.Language.nativeName}"
+                   onchange="contentPreferencesWidget.ChangeLanguage(this)"
+                   onfocus="this.value=''"
+                   validityMessage-Default="${LocaleText[4]}">
             <label for="language">${LocaleText[1]}</label>
             <datalist id=languages>${language.GetAppSupportedAsOptions()}</datalist>
         </div>
 
         <div>
-            <input type="text" id="region" list="countries" value="${users.active.ContentPreferences.Region.nativeName}" onchange="contentPreferencesWidget.ChangeRegion(this)" onfocus="this.value=''" validationMessage="${LocaleText[5]}">
+            <input type="text" id="region" list="countries" value="${OS.User.ContentPreferences.Region.nativeName}"
+                   onchange="contentPreferencesWidget.ChangeRegion(this)"
+                   onfocus="this.value=''"
+                   validityMessage-Default="${LocaleText[5]}">
             <label for="region">${LocaleText[2]}</label>
             <datalist id="countries">${region.GetAppSupportedAsOptions()}</datalist>
         </div>
 
+        <!-- ${CurrencySelectWidget.ConnectedCallback(transferPaymentPage.Options.CurrencySelect)} -->
         <div>
-            <input type="text" id="currency" list="currencies" value="${users.active.ContentPreferences.Currency.nativeName}" onchange="contentPreferencesWidget.ChangeCurrency(this)" onfocus="this.value=''" validationMessage="${LocaleText[6]}">
+            <input type="text" id="currency" list="currencies" value="${OS.User.ContentPreferences.Currency.nativeName}"
+                   onchange="contentPreferencesWidget.ChangeCurrency(this)"
+                   onfocus="this.value=''"
+                   validityMessage-Default="${LocaleText[6]}">
             <label for="currency">${LocaleText[3]}</label>
             <datalist id="currencies">${currency.GetAppSupportedAsOptions()}</datalist>
         </div>

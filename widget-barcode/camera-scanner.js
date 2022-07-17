@@ -1,17 +1,19 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import '../widgets.js'
-import '../errors.js'
 import './zbar.js'
 
 const barcodeCameraScannerWidget = {
-    ID: "barcode-camera-scanner",
+    URN: {
+        URN: "",
+        ID: "",
+        Name: "barcode-camera-scanner",
+    },
     Conditions: {},
     HTML: () => ``,
     CSS: '',
     Templates: {},
 }
-widgets.RegisterWidget(barcodeCameraScannerWidget)
+Application.RegisterWidget(barcodeCameraScannerWidget)
 
 /**
  * 
@@ -29,7 +31,7 @@ barcodeCameraScannerWidget.ConnectedCallback = function (options) {
      * @param {ZBarSymbol[]} ZBarSymbols 
      */
     function test(ZBarSymbols) {
-        barcodeCameraScannerWidget.Beep(200, 100, 5)
+        HTMLAudioElement.Beep(200, 100, 5)
         // for (let res of ZBarSymbols) {
         // }
     }
@@ -91,7 +93,7 @@ barcodeCameraScannerWidget.toggleViewer = function (element) {
 barcodeCameraScannerWidget.toggleScannerButton = function (element) {
     if (element.checked) {
         this.disableScanner()
-        if (this.viewerEnabled) this.toggleViewer()
+        if (this.viewerEnabled) this.toggleViewer(element.nextSibling)
     } else {
         this.enableScanner()
     }
@@ -132,7 +134,7 @@ barcodeCameraScannerWidget.enableScanner = async function () {
         // this.imageCapture = new ImageCapture(mediaStreamTrack)
     } catch (err) {
         // OverconstrainedError : constraint: "facingMode"
-        errors.HandleError(err)
+        Err.NotifyAnyToUser(err)
         this.scannerEnabled = false
         return
     }
@@ -150,9 +152,11 @@ barcodeCameraScannerWidget.enableScanner = async function () {
 
 barcodeCameraScannerWidget.disableScanner = async function () {
     this.scannerEnabled = false
-    // destroy camera usage
-    for (let track of this.mediaStream.getTracks()) {
-        track.stop()
+    if (this.mediaStream) {
+        // destroy camera usage
+        for (let track of this.mediaStream.getTracks()) {
+            track.stop()
+        }
     }
 }
 
@@ -190,31 +194,4 @@ barcodeCameraScannerWidget.zbarScaner = async function () {
     const res = await ZBar.ScanRGBABuffer(imgData.data.buffer, width, height, this.imageScanner)
 
     return res
-}
-
-barcodeCameraScannerWidget.audioCtx = new AudioContext()
-
-/**
- * 
- * All arguments are optional
- * @param {number} duration duration of the tone in milliseconds. Default is 500
- * @param {number} frequency frequency of the tone in hertz. default is 440
- * @param {number} volume volume of the tone. Default is 1, off is 0.
- * @param {string} type type of tone. Possible values are sine, square, sawtooth, triangle, and custom. Default is sine.
- * @param {function} callback callback to use on end of tone
- */
-barcodeCameraScannerWidget.Beep = function (duration, frequency, volume, type, callback) {
-    let oscillator = this.audioCtx.createOscillator()
-    let gainNode = this.audioCtx.createGain()
-
-    oscillator.connect(gainNode)
-    gainNode.connect(this.audioCtx.destination)
-
-    if (volume) gainNode.gain.value = volume
-    if (frequency) oscillator.frequency.value = frequency
-    if (type) oscillator.type = type
-    if (callback) oscillator.onended = callback
-
-    oscillator.start(this.audioCtx.currentTime)
-    oscillator.stop(this.audioCtx.currentTime + ((duration || 500) / 1000))
 }

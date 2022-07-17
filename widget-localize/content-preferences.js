@@ -1,22 +1,25 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import '../widgets.js'
-import '../language.js'
-import '../region.js'
+import '../language/language.js'
+import '../region/region.js'
 import '../price/currency.js'
-import '../users.js'
 
 /**
  * 
  * https://tools.ietf.org/html/bcp47
  */
 const contentPreferencesWidget = {
-    ID: "content-preferences",
+    URN: {
+        URN: "",
+        ID: "",
+        Name: "content-preferences",
+    },
     HTML: () => ``,
     CSS: '',
-    Templates: {}
+    Templates: {},
+    Options: {},
 }
-widgets.poolByID[contentPreferencesWidget.ID] = contentPreferencesWidget
+Application.RegisterWidget(contentPreferencesWidget)
 
 contentPreferencesWidget.ConnectedCallback = function () {
     pageStylesElement.insertAdjacentHTML("beforeend", this.CSS)
@@ -26,44 +29,52 @@ contentPreferencesWidget.ConnectedCallback = function () {
 contentPreferencesWidget.DisconnectedCallback = function () {
 }
 
-contentPreferencesWidget.ChangeLanguage = function(element) {
+contentPreferencesWidget.ChangeLanguage = function (element) {
     const lang = language.GetSupportedByNativeName(element.value)
     if (lang) {
-        users.active.ContentPreferences.Languages = [lang.iso639_1]
-        users.active.ContentPreferences.Language = lang
-        element.setCustomValidity("")
-        element.reportValidity()
+        OS.User.ContentPreferences.Languages = [lang.iso639_1]
+        OS.User.ContentPreferences.Language = lang
+        element.warnValidity("")
+        element.focusNext()
     } else {
-        // alert user about not supported or bad region selected
-        element.setCustomValidity(element.getAttribute("validationMessage"))
-        element.reportValidity()
+        element.warnValidity()
+        return
     }
 }
 
-contentPreferencesWidget.ChangeRegion = function(element) {
+contentPreferencesWidget.ChangeRegion = function (element) {
     const reg = region.GetSupportedByNativeName(element.value)
     if (reg) {
-        users.active.ContentPreferences.Regions = [reg.iso3166_1_a3]
-        users.active.ContentPreferences.Region = reg
-        element.setCustomValidity("")
-        element.reportValidity()
+        OS.User.ContentPreferences.Regions = [reg.iso3166_1_a3]
+        OS.User.ContentPreferences.Region = reg
+        element.warnValidity("")
+        element.focusNext()
     } else {
-        // alert user about not supported or bad region selected
-        element.setCustomValidity(element.getAttribute("validationMessage"))
-        element.reportValidity()
+        element.warnValidity()
+        return
     }
 }
 
-contentPreferencesWidget.ChangeCurrency = function(element) {
+contentPreferencesWidget.ChangeCurrency = function (element) {
     const cur = currency.GetSupportedByNativeName(element.value)
     if (cur) {
-        users.active.ContentPreferences.Regions = [cur.iso4217]
-        users.active.ContentPreferences.Currency = cur
-        element.setCustomValidity("")
-        element.reportValidity()
+        OS.User.ContentPreferences.Currency = [cur.iso4217]
+        OS.User.ContentPreferences.Currency = cur
+        element.warnValidity("")
+        element.focusNext()
     } else {
-        // alert user about not supported or bad currency selected
-        element.setCustomValidity(element.getAttribute("validationMessage"))
-        element.reportValidity()
+        element.warnValidity()
+        return
     }
+}
+
+contentPreferencesWidget.currencyWidgetCallback = function (cur) {
+    OS.User.ContentPreferences.Currency = [cur.iso4217]
+    OS.User.ContentPreferences.Currency = cur
+}
+
+contentPreferencesWidget.Options.CurrencySelect = {
+    identifier: "contentPreferencesWidget.Options.CurrencySelect",
+    callback: contentPreferencesWidget.currencyWidgetCallback,
+    appSupported: true,
 }
