@@ -5,6 +5,7 @@ const IP = {
 }
 
 IP.String = function (ip) {
+    if (ip.length < 16) return ""
     let IPString = ""
     if (ip[0] === 0 && ip[1] === 0 && ip[2] === 0 && ip[3] === 0 && ip[4] === 0 && ip[5] === 0 && ip[6] === 0 && ip[7] === 0 && ip[8] === 0) {
         // IPv4
@@ -56,6 +57,7 @@ IP.base64.Decode = function (base64) {
 }
 
 IP.base64.String = function (base64) {
+    if (!base64) return ""
     const ip = IP.base64.Decode(base64)
     const IPString = IP.String(ip)
     return IPString
