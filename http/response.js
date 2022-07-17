@@ -18,3 +18,10 @@ Response.prototype.GetError = function () {
 Response.prototype.SetError = function (err) {
     this.headers.set(HeaderKeyErrorID, err.ID())
 }
+
+/**
+ * syllab decoder method like json() method.
+ */
+ Response.prototype.ToSyllab = function() {
+
+}
