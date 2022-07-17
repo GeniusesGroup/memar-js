@@ -1,6 +1,5 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-
 HTMLAudioElement.audioCtx = new AudioContext()
 
 /**
@@ -27,4 +26,3 @@ HTMLAudioElement.Beep = function (duration, frequency, volume, type, callback) {
     oscillator.start(this.audioCtx.currentTime)
     oscillator.stop(this.audioCtx.currentTime + ((duration || 500) / 1000))
 }
-

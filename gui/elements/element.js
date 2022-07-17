@@ -1,7 +1,5 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import '../error/error.js'
-
 /**
  * Get next focusable element for any usage!
  * @returns {HTMLElement}
@@ -32,13 +30,13 @@ HTMLElement.prototype.focusNext = function () {
 
 /**
  * 
- * @param {PersiaError} error
+ * @param {Err} error Error protocol(interface)
  */
 HTMLElement.prototype.warnValidityError = function (error) {
-    this.setCustomValidity(error.Long)
+    this.setCustomValidity(error.Detail.Overview)
     this.reportValidity()
     HTMLAudioElement.Beep(400, 100, 5)
-    // TODO::: Vibrate device
+    window.navigator.vibrate(60)
 }
 
 /**
