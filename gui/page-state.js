@@ -13,3 +13,6 @@ const pageState = {
 }
 
 pageState.Finish = function() {}
+
+page.ActivatePage(state) = function () { } // will activate the page to bring it front for user with requested state.
+page.DeactivatePage() = function () { } // will deactivate the page to bring it to back to allow other page being active.

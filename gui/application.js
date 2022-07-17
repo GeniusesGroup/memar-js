@@ -3,15 +3,21 @@
 import './pages.js'
 import './history.js'
 import './widgets.js'
-import '../region.js'
+import '../service/services.js'
+import '../service/service.js'
+import '../region/region.js'
 import '../os/os.js'
 import '../polyfills/audio.js'
 import '../polyfills/button.js'
 import '../polyfills/dialog.js'
 import '../polyfills/element.js'
+import '../polyfills/http.js'
 import '../polyfills/meta.js'
 import '../language/language.js'
 import '../price/currency.js'
+import '../authorization/authorization.js'
+import '../authorization/crud.js'
+import '../authorization/user.js'
 
 /**
  * Experimental "Application" objects use to expand default browser window object!
@@ -43,8 +49,8 @@ const Application = {
         Orientation: "", // "any" || "natural" || "landscape" || "portrait" https://developer.mozilla.org/en-US/docs/Web/Manifest/orientation
         Viewport: {} // https://developer.mozilla.org/en-US/docs/Mozilla/Mobile/Viewport_meta_tag
     },
-    HomePage: "", // Application start page from written list keys
-    MostUsedPages: [""],
+    HomePage: "/", // Application start page from written list keys
+    MostUsedPages: [],
 
     DesignLanguageStyles: "", // Link element, Add auto by Application.LoadDesignLanguageStyles() method
     PrimaryFont: null, // FontFace(), Add auto by Application.LoadFontFamilies() method
@@ -67,31 +73,27 @@ Application.Start = async function () {
 
     // First check user preference in PWA version
     if (!(window.matchMedia('(display-mode: browser)').matches) && window.location.pathname === "/") {
-        window.history.replaceState({}, "", "/" + OS.User.HomePage)
-        this.ActivatePage(Application.GetPageByURNName(OS.User.HomePage), null)
+        window.history.replaceState({}, "", OS.User.HomePage)
+        this.ActivatePage(Application.GetPageByPath(OS.User.HomePage), null)
     } else {
         // Do normal routing!
         this.ActivatePageByURL(window.location.href)
     }
 }
 
-let designLanguageElement
-let themeStylesElement
-let pageStylesElement
-
 // function init() {
-designLanguageElement = window.document.createElement("link")
+const designLanguageElement = window.document.createElement("link")
 designLanguageElement.rel = "stylesheet"
 designLanguageElement.type = "text/css"
 window.document.head.appendChild(designLanguageElement)
 
 // Load theme early to respect page styles!
-themeStylesElement = window.document.createElement('link')
+const themeStylesElement = window.document.createElement('link')
 themeStylesElement.rel = "stylesheet"
 themeStylesElement.type = "text/css"
 window.document.head.appendChild(themeStylesElement)
 
-pageStylesElement = window.document.createElement("style")
+const pageStylesElement = window.document.createElement("style")
 window.document.head.appendChild(pageStylesElement)
 // }
 // init()
@@ -101,16 +103,16 @@ window.document.head.appendChild(pageStylesElement)
  */
 Application.LoadDesignLanguageStyles = function () {
     if (OS.User.PresentationPreferences.DesignLanguage === "material") {
-        Application.DesignLanguageStyles = "/design-language--material.css"
+        Application.DesignLanguageStyles = "/design-languages/material.css"
         designLanguageElement.href = Application.DesignLanguageStyles
         // Load related icon font family
         // https://fonts.googleapis.com/icon?family=Material+Icons
         const iconsFont = new FontFace('Material Icons', 'url(https://fonts.gstatic.com/s/materialicons/v55/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2)');
         iconsFont.load()
         window.document.fonts.add(iconsFont)
-    } else if (OS.User.PresentationPreferences.DesignLanguage === "flat") Application.DesignLanguageStyles = "/design-language--flat.css"
-    else if (OS.User.PresentationPreferences.DesignLanguage === "fluent") Application.DesignLanguageStyles = "/design-language--fluent.css"
-    else if (OS.User.PresentationPreferences.DesignLanguage === "ant") Application.DesignLanguageStyles = "/design-language--ant.css"
+    } else if (OS.User.PresentationPreferences.DesignLanguage === "flat") Application.DesignLanguageStyles = "/design-languages/flat.css"
+    else if (OS.User.PresentationPreferences.DesignLanguage === "fluent") Application.DesignLanguageStyles = "/design-languages/fluent.css"
+    else if (OS.User.PresentationPreferences.DesignLanguage === "ant") Application.DesignLanguageStyles = "/design-languages/ant.css"
 }
 
 /**
@@ -132,10 +134,10 @@ Application.LoadFontFamilies = function () {
 Application.LoadColorScheme = function () {
     if (OS.User.PresentationPreferences.ColorScheme === "no-preference") {
         // get browser or OS preference
-        themeStylesElement.href = "/theme-light.css"
+        themeStylesElement.href = "/design-languages/theme-light.css"
     }
-    else if (OS.User.PresentationPreferences.ColorScheme === "dark") themeStylesElement.href = "/theme-light.css"
-    else if (OS.User.PresentationPreferences.ColorScheme === "light") themeStylesElement.href = "/theme-light.css"
+    else if (OS.User.PresentationPreferences.ColorScheme === "dark") themeStylesElement.href = "/design-languages/theme-light.css"
+    else if (OS.User.PresentationPreferences.ColorScheme === "light") themeStylesElement.href = "/design-languages/theme-light.css"
 }
 
 /**
@@ -144,8 +146,8 @@ Application.LoadColorScheme = function () {
 window.onbeforeunload = async function (event) {
     // Warn active page about close||refresh occur and do what it want to do!
     if (Application.pages.activePage) {
-        const leave = await Application.pages.activePage.DisconnectedCallback()
-        if (leave === false) {
+        const approveLeave = await Application.pages.activePage.Deactivate()
+        if (!approveLeave) {
             event.preventDefault()
             return
         }

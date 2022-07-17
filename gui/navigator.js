@@ -1,26 +1,12 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-Application.pages = {
+Application.navigator = {
     activePage: null,
 
-    poolByURNName: {},
+    poolByPath: {},
 }
 
-Application.ActivePage = function () { return this.pages.activePage }
-
-/**
- * register given page in the application
- * @param {object} page 
- */
-Application.RegisterPage = function (page) {
-    this.poolByURNName[page.URN.Name] = page
-}
-
-/**
- * GetPageByURNName return a page by given page URN name
- * @param {string} name 
- */
-Application.GetPageByURNName = function (urnName) { return this.poolByURNName[urnName] }
+Application.ActivePage = function () { return this.navigator.activePage }
 
 /** 
  * ActivatePage will route to the page!
@@ -28,24 +14,23 @@ Application.GetPageByURNName = function (urnName) { return this.poolByURNName[ur
  * @param {pageState} state
  */
 Application.ActivatePage = async function (page, state) {
-    // Warn active page about routing occur and do what it want to do!
-    if (this.pages.activePage) {
-        const leave = await this.pages.activePage.DisconnectedCallback()
-        if (leave === false) return
+    // Warn active page about routing occur and do what it want to do
+    if (this.navigator.activePage) {
+        const approveLeave = await this.navigator.activePage.Deactivate()
+        if (!approveLeave) return
     }
 
-    this.pages.activePage = page
-    page.activeState = state
+    this.navigator.activePage = page
     this.history.newState(state)
 
     // Add page HTML & CSS to DOM
-    // TODO::: not efficient below code!
+    // TODO::: not efficient below code
     pageStylesElement.innerHTML = page.CSS
 
-    await page.ConnectedCallback()
+    await page.ActivatePage(state)
 
-    // Update page title with page full name and update some meta tags!
-    // This data also can be update in each page by ConnectedCallback method!
+    // Update page title with page full name in activeState and update some meta tags.
+    // activeState data can be update in each ActivatePage method call.
     window.document.title = state.Title
     window.document.description.content = state.Description
     window.document.robots.content = page.Robots
@@ -60,26 +45,26 @@ Application.ActivatePage = async function (page, state) {
 Application.ActivatePageByURL = async function (url) {
     const URI = new URL(url, window.location.href)
 
-    let pageURNName = URI.pathname
-    if (pageURNName.charAt(0) === '/') pageURNName = pageURNName.substring(1)
-    // TODO::: accept / at end of URL at all??
-    if (pageURNName.charAt(pageURNName.length - 1) === '/') pageURNName = pageURNName.substring(0, pageURNName.length - 1)
+    let pagePath = URI.pathname
+    // TODO::: accept / at end of URL at all?? duplicate page??
+    if (pagePath.charAt(pagePath.length - 1) === '/') pagePath = pagePath.substring(0, pagePath.length - 1)
 
-    if (pageURNName === "landings") {
-        const landingName = URI.searchParams.get("id")
-        if (landingName) {
-            this.LoadLanding(landingName)
-        } else {
-            this.ActivatePage(this.GetPageByURNName("error-404"), null)
-        }
-        return
+    switch (pagePath) {
+        case PathLanding:
+            const landingName = URI.searchParams.get("id")
+            if (landingName) {
+                this.navigator.LoadLanding(landingName)
+            } else {
+                this.ActivatePage(error404Page, null)
+            }
+            return
     }
 
     // Find requested app!
-    const page = this.GetPageByURNName(pageURNName)
+    const page = this.GetPageByPath(pagePath)
     if (!page) {
         // Requested page not exist
-        this.ActivatePage(Application.GetPageByURNName("error-404"), null)
+        this.ActivatePage(error404Page, null)
         return
     }
 
@@ -92,32 +77,45 @@ Application.ActivatePageByURL = async function (url) {
     // Set pageState conditions same as parameters in URL
     for (let sp of URI.searchParams.entries()) {
         const conditionName = sp[0]
-        // check requested condition support by page!
-        if (!page.acceptedConditions.includes(conditionName)
-            && conditionName !== "hl"  // hl==hrefLanguage
-            && conditionName !== "title" // use in share URLs
-            && conditionName !== "utm_source"
-            && conditionName !== "utm_medium"
-            && conditionName !== "utm_campaign"
-            && conditionName !== "rd") { // rd==redirect
-            // Requested page with desire condition not exist
-            this.ActivatePage(this.GetPageByURNName("error-404"), null)
-            return
-        }
         const conditionValue = sp[1]
-        pageState.Conditions[conditionName] = conditionValue.replaceAll(" ", "+") // TODO::: have problem with base64 in URL query!
+        if (conditionName === "hl"  // hl==hrefLanguage
+            || conditionName === "title" // use in share URLs
+            || conditionName === "utm_source"
+            || conditionName === "utm_medium"
+            || conditionName === "utm_campaign"
+            || conditionName === "rd") { // rd==redirect
+            pageState.Conditions[conditionName] = conditionValue
+            continue
+        }
+        // check requested condition support by page and add to page state conditions by desire type!
+        const acceptedConditionType = page.acceptedConditions[conditionName]
+        switch (typeof acceptedConditionType) {
+            case "string":
+                pageState.Conditions[conditionName] = conditionValue.replaceAll(" ", "+") // TODO::: have problem with base64 in URL query!
+                break
+            case "number":
+                pageState.Conditions[conditionName] = Number(conditionValue)
+                break
+            case "boolean":
+                pageState.Conditions[conditionName] = true
+                break
+            case "undefined": // Requested page with desire condition not exist
+                // TODO::: why not save page state in pages states chain.
+                this.ActivatePage(error404Page, null)
+                return
+        }
     }
 
     await this.ActivatePage(page, pageState)
 }
 
-Application.pages.LoadLanding = async function (landingName) {
+Application.navigator.LoadLanding = async function (landingName) {
     // push state into the history stack
-    window.history.pushState({}, "", "/landings?id=" + landingName)
+    window.history.pushState({}, "", "/l?id=" + landingName)
 
     const lang = OS.User.ContentPreferences.Language.iso639_1 || Application.ContentPreferences.Language.iso639_1
     try {
-        const res = await fetch('/' + landingName + "-" + lang + ".html")
+        const res = await fetch('/l/' + landingName + "-" + lang + ".html")
         switch (res.status) {
             case 200:
                 const htmlRes = await res.text()
@@ -125,10 +123,10 @@ Application.pages.LoadLanding = async function (landingName) {
                 window.document.title = landingName
                 break
             case 404:
-                this.ActivatePage(this.GetPageByURNName("error-404"), null)
+                Application.ActivatePage(error404Page, null)
                 break
             default:
-                this.ActivatePage(this.GetPageByURNName("error-500"), null)
+                Application.ActivatePage(error500Page, null)
         }
     } catch (err) {
         // TODO::: network error
@@ -159,9 +157,11 @@ function clickListener(event) {
     if (goUrl.href === window.location.href) return
 
     // Do routing instead of reload page!
-    this.ActivatePageByURL(goUrl.href)
+    Application.ActivatePageByURL(goUrl.href)
 }
 window.addEventListener('click', clickListener, false)
+// https://github.com/GoogleChromeLabs/page-lifecycle
+// window.addEventListener('unload', clickListener, false)
 
 function stateChangeListener(event) {
     // console.log(event)
@@ -169,7 +169,7 @@ function stateChangeListener(event) {
     event.preventDefault()
 
     // Do routing instead of reload page!
-    this.ActivatePageByURL(window.location.href)
+    Application.ActivatePageByURL(window.location.href)
 }
 window.addEventListener('popstate', stateChangeListener, false)
 window.addEventListener('pushState', stateChangeListener, false)
