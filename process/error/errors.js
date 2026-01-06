@@ -3,34 +3,33 @@
 import './error.js'
 
 Application.errors = {
-    poolByID: {},
-    poolByURN: {}
+    _poolByID: {},
+    _poolByMediaType: {}
 }
 
 /**
  * 
- * @param {GitiError} persiaError 
+ * @param {Err} err 
  */
-Application.errors.addError = function(persiaError) {
-    this.poolByID[id] = persiaError
-    this.poolByURN[urn] = persiaError
-
+Application.RegisterError = function (err) {
+    this._poolByID[id] = err
+    this._poolByMediaType[urn] = err
 }
 
 /**
  * 
  * @param {string} id ID of desire error
- * @return {GitiError} persiaError 
+ * @return {Err} related error by given id, if exist
  */
 Application.GetErrorByID = function (id) {
-    return this.errors.poolByID[id]
+    return this.errors._poolByID[id]
 }
 
 /**
  * 
- * @param {string} urn URN of desire error
- * @return {GitiError} persiaError 
+ * @param {string} mt MediaType of desire error
+ * @return {Err} related error by given mt, if exist 
  */
-Application.GetErrorByURN = function (urn) {
-    return this.errors.poolByURN[urn]
+Application.GetErrorByMediaType = function (mt) {
+    return this.errors._poolByMediaType[mt]
 }

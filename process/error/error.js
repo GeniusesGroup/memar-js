@@ -2,68 +2,52 @@
 
 import './errors.js'
 import './error-errors.js'
-import '../widget-notification/pop-up.js'
-import '../widget-notification/center.js'
+import '../widgets/notification/pop-up.js'
+import '../widgets/notification/center.js'
+import * as mediatype from "../../identifier/mediatype/mediatype.js"
 
-class GitiError extends Error {
+class Err extends mediatype.MediaType {
     /**
      * 
      * @param {string} id BigINT
-     * @param {string} urn 
+     * @param {string} mediatype 
      */
-    constructor(id, urn) {
-        super(urn)
-        this.name = 'GitiError'
-        this.ID = id
-        this.URN = urn
+    constructor(id, mediatype) {
+        super(id, mediatype)
+        this._name = 'Memar Error'
     }
 
     /**
-     * New will make new GitiError, register it on related pools and return it!
+     * New will make new Err, register it on related pools and return it!
      * @param {string} id BigINT
-     * @param {string} urn 
+     * @param {string} mediatype 
+     * @return {Err}
      */
-    static New(id, urn) {
-        const persiaError = new GitiError(id, urn)
-        Application.errors.addError(persiaError)
+    static New(id, mediatype) {
+        const persiaError = new Err(id, mediatype)
+        Application.RegisterError(persiaError)
         return persiaError
     }
 
-    /**
-     * 
-     * @param {string} domain 
-     * @param {string} short
-     * @param {string} long
-     * @param {string} userAction 
-     * @param {string} devAction 
-     */
-    SetDetail(domain, short, long, userAction, devAction) {
-        this.Detail = {
-            Domain: domain,
-            Short: short,
-            Long: long,
-            UserAction: userAction,
-            DevAction: devAction
-        }
-    }
+    Name() { return this._name }
 
     /**
-     * Use to notify to user by graphic, sound and vibration!!
+     * Notify error to user by graphic, sound and vibration (Haptic Feedback)
      */
-    NotifyToUser() {
+    Notify() {
         // TODO::: 
         console.log(this)
 
         HTMLAudioElement.Beep(500, 100, 5)
         window.navigator.vibrate(100)
 
-        popUpNotificationWidget.New(this.Detail.Domain + " - " + this.Detail.Short, this.Detail.Long, popUpNotificationWidgetTypeError)
-        // centerNotificationWidget.New(this.Detail.Short, this.Detail.Long + "<hr />" + this.ID, centerNotificationWidgetTypeError)
+        popUpNotificationWidget.New(this.Detail.Domain + " - " + this.Detail.Summary, this.Detail.Overview, popUpNotificationWidgetTypeError)
+        // centerNotificationWidget.New(this.Detail.Summary, this.Detail.Overview + "<hr />" + this.ID, centerNotificationWidgetTypeError)
     }
 
-    // Equal compare two Giti Error.
+    // Equal compare two Error.
     Equal(err) {
-        if (this.id == err.id) {
+        if (this._id == err._id) {
             return true
         }
         return false
@@ -71,42 +55,43 @@ class GitiError extends Error {
 
     /**
      * Use to notify any type of error to user by graphic, sound and vibration!!
-     * @param {GitiError|Error|string|number} err 
+     * @param {Err|Error|string|number} err 
      */
     static NotifyAnyToUser(err) {
-        const persiaError = this.ConvertToGitiError(err)
-        this.NotifyToUser(persiaError)
+        const persiaError = this.ConvertToErr(err)
+        this.Notify(persiaError)
     }
 
     /**
      * 
-     * @param {GitiError|Error|string|number} err 
+     * @param {Err|Error|string|number} err 
+     * @return {Err} related error
      */
-    static ConvertToGitiError(err) {
+    static ConvertToErr(err) {
         // TODO::: new more check here for error type!
         // TODO::: toast a dialog about error not alert
         switch (err.constructor) {
+            case Err:
+                return err
             case Number:
                 err = Application.GetErrorByID(err)
                 if (!err) err = ErrErrorNotFound
                 return err
             case String:
                 if (isNaN(err)) {
-                    return this.New(0, "urn:giti:chrome.google:error:temp-error").SetDetail("String", "Error", err)
+                    return ErrBrowserStringError
                 } else {
                     err = Application.GetErrorByID(err)
                     if (!err) err = ErrErrorNotFound
                     return err
                 }
-            case GitiError:
-                return err
             // case NetworkError:
             case TypeError:
                 switch (err.message) {
                     case "Failed to fetch":
                         return Application.GetErrorByID(4224326328) // No Connection
                     default:
-                        return this.New(0, "urn:giti:chrome.google:error:temp-error").SetDetail("Browser", "Error", err)
+                        return ErrBrowserTypeError
                 }
             // case EvalError:
             // case InternalError:
@@ -117,10 +102,10 @@ class GitiError extends Error {
             case Error:
                 switch (err.message) {
                     default:
-                        return this.New(0, "urn:giti:chrome.google:error:temp-error").SetDetail("Browser", "Error", err)
+                        return ErrBrowserError
                 }
             default:
-                return this.New(0, "urn:giti:chrome.google:error:temp-error").SetDetail("Unknown", "Error", err)
+                return ErrUnknownError
         }
     }
 }
