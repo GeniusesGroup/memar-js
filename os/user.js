@@ -5,13 +5,13 @@ const AdminUserID = "gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 
 OS.User = {
     ID: GuestUserID,
-    // Type: UserTypeGuest,
+    // Type: UserType_Unset,
     DelegateUserID: "",
     DelegateUserType: "",
     DelegateConnID: "",
     Name: "Guest User",
     Number: 982140000000,
-    Picture: "/not-login-user.svg",
+    Picture: "/images/not-login-user.svg",
     ContentPreferences: {
         Languages: ["en"],
         Regions: ["gb"],

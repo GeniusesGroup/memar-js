@@ -1,6 +1,6 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import '../time.js'
+import * as timer from '../timer/sleep.js'
 
 // https://en.wikipedia.org/wiki/Loader_(computing)
 OS.loader = {
@@ -8,24 +8,6 @@ OS.loader = {
 }
 
 OS.LoaderName = function () { return OS.loader.name }
-
-/**
- * loadApp will load needed files to start the application!
- */
-OS.loader.loadApp = async function () {
-    const initScript = document.createElement('script')
-    initScript.src = "/init-" + OS.User.ContentPreferences.Language.iso639_1 + ".js"
-    initScript.onload = initOnLoad
-    document.head.appendChild(initScript)
-    return new Promise((resolve, reject) => {
-        this.resolver = resolve
-        this.rejecter = reject
-    })
-}
-
-OS.loader.initOnLoad = function (event) {
-    this.resolver(true)
-}
 
 OS.loader.SuggestUpgrade = function () {
     if (!('serviceWorker' in navigator)
@@ -62,11 +44,11 @@ OS.loader.PWA = function () {
     // Register service-worker.js
     // service-worker will be removed as soon as we can find other solution to control app by main function!
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js', { scope: "/" })
+        navigator.serviceWorker.register('/sw-' + OS.User.ContentPreferences.Language.iso639_1 + '.js', { scope: "/" })
             .then(reg => {
                 reg.onupdatefound = async function () {
                     // TODO::: promote a dialog to user to update app by click update!
-                    await time.Sleep(1000)
+                    await timer.Sleep(1000)
                     location.reload()
                 }
             })
@@ -82,8 +64,8 @@ OS.loader.UpdateManifest = function () {
     // Warn users about console self attack.
     console.log('%cWARNING!', 'background:yellow; color:red; font-size:x-large')
     console.log(`%c\nUsing this console may allow attackers to impersonate you and steal your information using an attack called Self-XSS. Do not enter or paste code that you do not understand. \n`, 'font-size:large')
-    // Attention developer to join SabzCity open source
-    console.log('%cJoin SabzCity open source Platform: https://github.com/sabzcity', 'background:green;color:white;font-size:large')
+    // Attention developer to join GeniusesGroup open source
+    console.log('%cJoin GeniusesGroup open source Platform: https://github.com/GeniusesGroup', 'background:green;color:white;font-size:large')
 
     // Add icon
     const icon = document.createElement('link')
@@ -136,15 +118,16 @@ OS.loader.UpdateManifest = function () {
         // theme_color: Application.PresentationPreferences.ThemeColor,
         display: Application.PresentationPreferences.Display,
         orientation: Application.PresentationPreferences.Orientation,
-        start_url: window.location.origin + "/" + OS.User.HomePage + "?utm_source=PWA&utm_medium=HomeScreen",
-        icons: [{ "sizes": "512x512", "type": "image/png", src: window.location.origin + "/" + Application.Icon }],
+        start_url: window.location.origin + OS.User.HomePage + "?utm_source=PWA&utm_medium=HomeScreen",
+        icons: [{ "sizes": "512x512", "type": "image/png", src: window.location.origin + Application.Icon }],
         shortcuts: [],
     }
     for (let pageID of Application.MostUsedPages) {
+        const page = Application.GetPageByPath(pageID)
         manifest.shortcuts.push({
-            "name": Application.GetPageByURNName(pageID).Info.Name,
-            "url": window.location.origin + "/" + Application.GetPageByURNName(pageID).ID,
-            "description": Application.GetPageByURNName(pageID).Info.Description,
+            "name": page.Info.Name,
+            "url": window.location.origin + page.Path,
+            "description": page.Info.Description,
         })
     }
     const manifestElement = document.createElement('link')

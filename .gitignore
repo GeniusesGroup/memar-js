@@ -1,7 +1,10 @@
 # Folders
 _obj
 _test
-storage
+widgets/barcode/storage
+
+# Khayyam compile cache and generated JS (build products only)
+khayyam/build/
 
 # Prerequisites
 *.d

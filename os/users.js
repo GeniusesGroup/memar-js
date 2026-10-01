@@ -1,6 +1,6 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import '../cookie.js'
+import '../http/cookie.js'
 
 OS.users = {}
 
@@ -56,11 +56,11 @@ OS.users.newUser = function (personID, delegateUserID) {
     }
     return {
         ID: personID,
-        // UserType: UserTypePerson,
+        // UserType: UserType_Person,
         DelegateUserID: delegateUserID,
-        // DelegateUserType: UserTypeOrg,
+        // DelegateUserType: UserType_Org,
         Name: "Undefined",
-        Picture: "/not-login-user.svg",
+        Picture: "/images/not-login-user.svg",
         ContentPreferences: OS.User.ContentPreferences || Application.ContentPreferences,
         PresentationPreferences: OS.User.PresentationPreferences || Application.PresentationPreferences,
         HomePage: Application.HomePage,

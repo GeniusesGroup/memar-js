@@ -1,7 +1,7 @@
 /* For license and copyright information please see LEGAL file in repository */
 
-import './base64.js'
-import './cookie.js'
+import '../codec/base64/base64.js'
+import '../http/cookie.js'
 import './sdk/Achaemenid/set-connection-thing-id.js'
 
 const thingGuestID = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
@@ -47,7 +47,7 @@ OS.thing.checkCookie = async function () {
         try {
             await SetConnectionThingID(SetConnectionThingIDReq)
         } catch (err) {
-            err.NotifyToUser()
+            err.Notify()
         }
     }
 }

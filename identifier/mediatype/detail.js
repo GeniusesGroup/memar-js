@@ -1,9 +1,9 @@
 /* For license and copyright information please see LEGAL file in repository */
 
 /**
- * See https://github.com/GeniusesGroup/libgo/blob/main/protocol/gui-information.go GUIInformation interface for comments
+ * See https://github.com/GeniusesGroup/libgo/blob/main/protocol/media-type.go MediaTypeDetail interface for comments
  */
-class Information {
+class MediaTypeDetail {
     /**
     * 
     * @param {string} lang 
@@ -15,7 +15,7 @@ class Information {
     * @param {string[]} tags 
     */
     constructor(lang, domain, summary, overview, userNote, devNote, tags) {
-        this._name = 'Memar GUI Information'
+        this._name = 'Memar MediaType Detail'
         this._language = lang
         this._domain = domain
         this._summary = summary
@@ -25,11 +25,12 @@ class Information {
         this._tags = tags
     }
 
-    Language() { return this._language }
     Name() { return this._name }
-    ShortName() { return this._shortname }
-    Tagline() { return this._tagline }
-    Slogan() { return this._slogan }
-    Description() { return this._description }
+    Language() { return this._language }
+    Domain() { return this._domain }
+    Summary() { return this._summary }
+    Overview() { return this._overview }
+    UserNote() { return this._userNote }
+    DevNote() { return this._devNote }
     Tags() { return this._tags }
 }

@@ -1,5 +1,6 @@
 /* For license and copyright information please see LEGAL file in repository */
 
+// https://github.com/dinerojs/dinero.js
 const amount = {}
 
 amount.InputElement = function (element) {

@@ -2,7 +2,7 @@
 
 import './languages.js'
 import '../polyfills/url.js'
-import '../widget-localize/suggest-language.js'
+import '../widgets/localize/suggest-language.js'
 
 const language = {
     poolByID: {},

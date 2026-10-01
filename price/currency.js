@@ -1,7 +1,7 @@
 /* For license and copyright information please see LEGAL file in repository */
 
 const currency = {
-    poolByISO4217_num: {},
+    poolByID: {},
     poolByISO4217: {},
     poolByNativeName: {},
 }
@@ -9,14 +9,23 @@ const currency = {
 /**
  * 
  * @param {number} num 
- * @param {number} iso4217_num 
+ * @param {number} currencyID 
  */
-currency.String = function (num, iso4217_num) {
+currency.String = function (num, currencyID) {
     if (!num) num = 0
-    if (iso4217_num) return num.toLocaleString() + " " + this.poolByISO4217_num[iso4217_num].symbol
+    if (currencyID) return num.toLocaleString() + " " + this.poolByID[currencyID].symbol
 
-    // TODO::: convert iso4217_num if not same as user wanted!
-    return num.toLocaleString() + " " + users.active.ContentPreferences.Currency.symbol
+    // TODO::: convert currencyID if not same as user wanted!
+    return num.toLocaleString() + " " + OS.User.ContentPreferences.Currency.symbol
+}
+
+/**
+ * 
+ * @param {number} num 
+ * @param {number} currencyID 
+ */
+currency.StringRound = function (num, currencyID) {
+    return this.String(Math.ceil(num), currencyID)
 }
 
 currency.GetByNativeName = function (nativeName) {
@@ -30,14 +39,6 @@ currency.GetSupportedByNativeName = function (nativeName) {
     return cur
 }
 
-currency.GetAllAsOptions = function () {
-    let options = ""
-    for (let c of this.currencies) {
-        options += `<option value="${c.nativeName}">${c.englishName}</option>`
-    }
-    return options
-}
-
 currency.GetAppSupportedAsOptions = function () {
     let options = ""
     for (let c of this.currencies) {
@@ -47,50 +48,54 @@ currency.GetAppSupportedAsOptions = function () {
     return options
 }
 
-// https://en.wikipedia.org/wiki/ISO_4217
+/**
+ * 
+ * ID is iso4217_num
+ * https://en.wikipedia.org/wiki/ISO_4217
+ */
 currency.currencies = [
     {
+        ID: 7337,
         englishName: "Persia Derik",
         nativeName: "Persia Derik",
         iso4217: "PRD",
-        iso4217_num: 7337,
         symbol: "D",
     }, {
+        ID: 364,
         englishName: "Iranian rial",
         nativeName: "ریال ایران",
         iso4217: "IRR",
-        iso4217_num: 364,
         symbol: "ريال",
     }, {
+        ID: 0,
         englishName: "Iranian toman",
         nativeName: "تومان ایران‎",
         iso4217: "IRT",
-        iso4217_num: 0,
         symbol: "تومان‎",
     }, {
+        ID: 978,
         englishName: "Euro",
         nativeName: "Euro",
         iso4217: "EUR",
-        iso4217_num: 978,
         symbol: "€",
     }, {
+        ID: 784,
         englishName: "United Arab Emirates dirham",
         nativeName: "درهم إماراتي",
         iso4217: "AED",
-        iso4217_num: 784,
         symbol: "د.إ",
     }, {
+        ID: 840,
         englishName: "United States Dollar",
         nativeName: "United States Dollar",
         iso4217: "USD",
-        iso4217_num: 840,
         symbol: "$",
     },
 ]
 
 // function init() {
 for (let c of currency.currencies) {
-    currency.poolByISO4217_num[c.iso4217_num] = c
+    currency.poolByID[c.ID] = c
     currency.poolByISO4217[c.iso4217] = c
     currency.poolByNativeName[c.nativeName] = c
 }

@@ -4,7 +4,6 @@ import './loader.js'
 import './thing.js'
 import './user.js'
 import './users.js'
-import '../time.js'
 import '../language/language.js'
 
 // https://en.wikipedia.org/wiki/Operating_System
@@ -19,7 +18,6 @@ OS.Init = async function () {
     language.SetLangAndDir()
     this.loader.detectName()
     this.loader.SuggestUpgrade()
-    await this.loader.loadApp()
     this.loader.PWA()
 }
 
