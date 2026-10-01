@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> **Archived implementation snapshot.** This repository is preserved for possible future resumption, not production readiness. Known build and migration issues remain intentionally unresolved. Transferring architecture ideas is a separate workflow and is not part of this archive. The project may be resumed later, including by an automated development agent.
+
 # Memar - JavaScript version
 `Memar` as a `JS language library` is a repository wrapper to store all implementation of [Memar](https://github.com/GeniusesGroup/memar) and others protocols and algorithms to make a digital software more easily in better performance.
 
